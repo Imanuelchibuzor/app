@@ -2,7 +2,7 @@ import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type Product = {
-  id: string;
+  id: number;
   image: string;
   title: string;
   author: string;
@@ -17,7 +17,7 @@ type ProductCardProps = {
 const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
 
-  const handleClick = (id: string) => {
+  const handleClick = (id: number) => {
     navigate(`/product/${id}`);
   };
 

@@ -6,6 +6,7 @@ import NotFound from "../pages/NotFound";
 // Unauthenticated
 import Home from "../pages/Home";
 import ProductPage from "../pages/ProductPage";
+import Library from "../pages/Library";
 
 // Auth
 import SignUp from "../pages/auth/SignUp";
@@ -23,6 +24,8 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFound /> },
       { path: "/", element: <Home /> },
       { path: "/product/:id", element: <ProductPage /> },
+      { path: "/library", element: <Library /> },
+      
       { path: "/sign-up", element: <SignUp /> },
       { path: "/sign-up-otp", element: <SignUpOtp /> },
       { path: "/sign-in", element: <SignIn /> },
