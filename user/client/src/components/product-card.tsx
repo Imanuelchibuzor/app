@@ -1,6 +1,8 @@
 import { Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type Product = {
+  id: string;
   image: string;
   title: string;
   author: string;
@@ -13,8 +15,14 @@ type ProductCardProps = {
 };
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = (id: string) => {
+    navigate(`/product/${id}`);
+  };
+
   return (
-    <div className="space-y-2" onClick={() => console.log(product)}>
+    <div className="space-y-2" onClick={() => handleClick(product.id)}>
       <img
         src={product.image}
         alt={product.title}
@@ -23,8 +31,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       <div>
         <h3 className="font-medium">
-          {product.title.length > 40
-            ? `${product.title.slice(0, 35)}...`
+          {product.title.length > 25
+            ? `${product.title.slice(0, 25)}...`
             : product.title}
         </h3>
         <p className="text-sm text-muted-foreground">{product.author}</p>

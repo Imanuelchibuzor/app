@@ -21,6 +21,7 @@ import book_20 from "./book-20.png";
 import book_21 from "./book-21.png";
 import book_22 from "./book-22.png";
 import book_23 from "./book-23.png";
+import book_24 from "./book-24.png";
 
 const coverImg = {
   book_1,
@@ -45,7 +46,8 @@ const coverImg = {
   book_20,
   book_21,
   book_22,
-  book_23
+  book_23,
+  book_24
 }
 
 export default coverImg

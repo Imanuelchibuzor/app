@@ -1,8 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import App from "../App";
-import Home from "../pages/Home";
 import NotFound from "../pages/NotFound";
+
+// Unauthenticated
+import Home from "../pages/Home";
+import ProductPage from "../pages/ProductPage";
+
+// Auth
 import SignUp from "../pages/auth/SignUp";
 import SignUpOtp from "@/pages/auth/SignUpOtp";
 import SignIn from "../pages/auth/SignIn";
@@ -15,8 +20,9 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
-      { path: "/", element: <Home /> },
       { path: "*", element: <NotFound /> },
+      { path: "/", element: <Home /> },
+      { path: "/product/:id", element: <ProductPage /> },
       { path: "/sign-up", element: <SignUp /> },
       { path: "/sign-up-otp", element: <SignUpOtp /> },
       { path: "/sign-in", element: <SignIn /> },

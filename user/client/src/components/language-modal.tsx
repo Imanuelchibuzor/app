@@ -42,7 +42,7 @@ const LanguageModal: React.FC = () => {
       {/* Modal */}
       {languageModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-300"
           aria-hidden={!languageModalOpen}
         >
           {/* Backdrop */}
@@ -57,7 +57,7 @@ const LanguageModal: React.FC = () => {
             aria-modal="true"
             aria-label="Select language"
             className="relative border bg-background rounded-lg p-6 w-96 max-w-[90vw] z-10"
-            onClick={(e) => e.stopPropagation()} // prevent backdrop click
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Select Language</h3>
