@@ -17,8 +17,8 @@ const SearchForm = () => {
       <Field>
         <Input onChange={(e) => setSearch(e.target.value)} placeholder="Search here ..." className="shadow-sm" />
       </Field>
-      <Button onClick={() => handleSearch()}>
-        <Search />
+      <Button className="rounded-full" onClick={() => handleSearch()}>
+        <Search  />
       </Button>
     </div>
   );
