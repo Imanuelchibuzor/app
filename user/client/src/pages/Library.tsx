@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, Download, Landmark, MessageSquare } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ReviewModal } from "@/components/review-modal";
 import coverImg from "../assets/covers/books";
+import LoadMore from "@/components/load-more";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ReviewModal } from "@/components/review-modal";
 
 interface LibraryItem {
   id: string;
@@ -16,6 +18,7 @@ const Library = () => {
   const [selectedProduct, setSelectedProduct] = useState<LibraryItem | null>(
     null
   );
+  const [loading, setLoading] = useState(true);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // Sample library items
@@ -46,6 +49,12 @@ const Library = () => {
     },
   ];
 
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+  }, []);
+
   const handleReviewClick = (item: LibraryItem) => {
     setSelectedProduct(item);
     setIsReviewModalOpen(true);
@@ -63,66 +72,96 @@ const Library = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <Landmark className="w-8 h-8" />
-          <h1 className="text-4xl font-bold text-foreground">Library</h1>
+      <div className="space-y-12">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-2">
+            <Landmark className="w-8 h-8" />
+            <h1 className="text-4xl font-bold text-foreground">Library</h1>
+          </div>
+          <p className="text-muted-foreground">
+            Access your purchased publications
+          </p>
         </div>
-        <p className="text-muted-foreground">
-          Access your purchased publications
-        </p>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
-        {libraryItems.map((item) => (
-          <div key={item.id} className="container">
-            <div className="relative aspect-[6/7] w-full">
-              <img
-                src={item.coverImage}
-                alt={item.title}
-                className="object-cover rounded-lg"
-              />
-            </div>
-            <div className="py-2 space-y-3">
-              <div>
-                <h3 className="font-semibold text-lg line-clamp-1">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-muted-foreground">{item.author}</p>
+        {!loading && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
+          {libraryItems.map((item) => (
+            <div key={item.id} className="container">
+              <div className="relative aspect-[6/7] w-full">
+                <img
+                  src={item.coverImage}
+                  alt={item.title}
+                  className="object-cover rounded-lg"
+                />
               </div>
+              <div className="py-2 space-y-3">
+                <div>
+                  <h3 className="font-semibold text-lg line-clamp-1">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{item.author}</p>
+                </div>
 
-              <div className="flex flex-col gap-4">
-                <Button
-                  onClick={() => handleOpen(item.id)}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Open
-                </Button>
-
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-4">
                   <Button
-                    onClick={() => handleDownload(item.id)}
-                    variant="outline"
-                    className="w-full"
+                    onClick={() => handleOpen(item.id)}
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Open
                   </Button>
 
-                  <Button
-                    onClick={() => handleReviewClick(item)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Review
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      onClick={() => handleDownload(item.id)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+
+                    <Button
+                      onClick={() => handleReviewClick(item)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Review
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
+          ))}
+        </div>}
+
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
+            {Array.from({ length: 4 }).map((_, item) => (
+              <div key={item} className="container">
+                <div className="relative aspect-[6/7] w-full">
+                  <Skeleton className="h-full" />
+                </div>
+                <div className="py-2 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/3" />
+
+                  <div className="flex flex-col gap-4">
+                    <Skeleton className="h-6 w-full" />
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+
+        {!loading && <LoadMore />}
+        {loading && <Skeleton className="h-10 w-32 mx-auto" />}
       </div>
 
       <ReviewModal

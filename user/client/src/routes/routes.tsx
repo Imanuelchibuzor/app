@@ -16,6 +16,10 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPasswordOtp from "../pages/auth/ResetPasswordOtp";
 import ResetPassword from "../pages/auth/ResetPassword";
 
+// Merchant
+import VendorDashboard from "../pages/merchant/Vendor";
+import AffiliateDashboard from "../pages/merchant/Affiliate";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -32,6 +36,9 @@ const router = createBrowserRouter([
       { path: "/forgot-password", element: <ForgotPassword /> },
       { path: "/reset-password-otp", element: <ResetPasswordOtp /> },
       { path: "/reset-password", element: <ResetPassword /> },
+
+      { path: "/vendor", element: <VendorDashboard /> },
+      { path: "/affiliate", element: <AffiliateDashboard /> },
     ],
   },
 ]);

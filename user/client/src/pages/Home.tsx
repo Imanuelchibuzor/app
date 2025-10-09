@@ -2,10 +2,10 @@ import Search from "../components/search";
 import Categories from "@/components/categories";
 import SkeletonCard from "@/components/skeleton-card";
 import ProductCard from "@/components/product-card";
-import { Button } from "@/components/ui/button";
 
 import coverImg from "../assets/covers/books";
 import { useEffect, useState } from "react";
+import LoadMore from "@/components/load-more";
 
 const Home = () => {
   const [loading, setLoading] = useState(true);
@@ -180,7 +180,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex flex-col items-center justify-center space-y-12">
+      <div className="flex flex-col items-center justify-center space-y-4">
         <div className="mb-16 flex flex-col items-center space-y-4">
           <Search />
           <div>
@@ -197,7 +197,7 @@ const Home = () => {
               <SkeletonCard key={index} />
             ))}
         </div>
-        <Button>Load More</Button>
+        <LoadMore />
       </div>
     </div>
   );
