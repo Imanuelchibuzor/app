@@ -180,7 +180,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="flex flex-col items-center justify-center my-8 space-y-12">
+      <div className="flex flex-col items-center justify-center space-y-12">
         <div className="mb-16 flex flex-col items-center space-y-4">
           <Search />
           <div>
