@@ -232,7 +232,7 @@ const VendorDashboard = () => {
         )}
         {loading && <Skeleton className="w-full h-100 rounded-xl" />}
 
-        <LoadMore />
+        {!loading && <LoadMore />}
         {loading && <Skeleton className="h-10 w-32 mx-auto" />}
       </div>
     </div>

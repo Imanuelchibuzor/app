@@ -7,6 +7,7 @@ type Product = {
   title: string;
   author: string;
   price: string;
+  commission?: number;
   rating: number;
 };
 
@@ -18,7 +19,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const navigate = useNavigate();
 
   const handleClick = (id: number) => {
-    navigate(`/product/${id}`);
+    if (product.commission) {
+      navigate(`/promote/${id}`);
+    } else {
+      navigate(`/product/${id}`);
+    }
   };
 
   return (
@@ -31,8 +36,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
       <div>
         <h3 className="font-medium">
-          {product.title.length > 25
-            ? `${product.title.slice(0, 25)}...`
+          {product.title.length > 20
+            ? `${product.title.slice(0, 20)}...`
             : product.title}
         </h3>
         <p className="text-sm text-muted-foreground">{product.author}</p>
@@ -49,6 +54,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
               {product.rating.toFixed(1)}
             </span>
           </div>
+
+          {product?.commission && (
+            <span className="h-4 w-px bg-gray-200" area-hidden="true" />
+          )}
+
+          {product?.commission && (
+            <span className="text-lg font-semibold text-green-500">
+              {product?.commission}%
+            </span>
+          )}
         </div>
       </div>
     </div>

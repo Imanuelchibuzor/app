@@ -1,13 +1,13 @@
-import Search from "../components/search";
+import Search from "../../components/search";
 import Categories from "@/components/categories";
 import SkeletonCard from "@/components/skeleton-card";
 import ProductCard from "@/components/product-card";
 
-import coverImg from "../assets/covers/books";
+import coverImg from "../../assets/covers/books";
 import { useEffect, useState } from "react";
 import LoadMore from "@/components/load-more";
 
-const Home = () => {
+const Promote = () => {
   const [loading, setLoading] = useState(true);
   const products = [
     {
@@ -16,6 +16,7 @@ const Home = () => {
       author: "Jason Flagler",
       title: "This is a long title and I want to see how it works",
       price: "$12.99",
+      commission: 20,
       rating: 3.5,
     },
     {
@@ -203,4 +204,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Promote;

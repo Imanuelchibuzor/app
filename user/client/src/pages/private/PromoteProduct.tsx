@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Download,
-  ShoppingCart,
+  Share2,
   ChevronLeft,
   Languages,
   BookOpen,
@@ -12,11 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import coverImg from "../assets/covers/books";
+import coverImg from "../../assets/covers/books";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Reviews, StarRating } from "@/components/reviews";
 import { Skeleton } from "@/components/ui/skeleton";
-import PurchaseSuccessModal from "@/components/purchase-success";
+import PromoteSuccessModal from "@/components/promote-success";
 
 // Mock product data
 const productData = {
@@ -34,6 +34,7 @@ const productData = {
   discount: 30,
   newPrice: 24.99,
   oldPrice: 35.99,
+  commission: 20,
 };
 
 const reviews = [
@@ -75,17 +76,17 @@ const reviews = [
   },
 ];
 
-const ProductPage = () => {
+const Promoteproduct = () => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [purchasing, setPurchasing] = useState(false);
+  const [promoting, setPromoting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const handlePurchase = () => {
-    setPurchasing(true);
+  const handlePromote = () => {
+    setPromoting(true);
 
     setTimeout(() => {
-      setPurchasing(false);
+      setPromoting(false);
       setIsModalOpen(true);
     }, 3000);
   };
@@ -98,8 +99,8 @@ const ProductPage = () => {
 
   return (
     <>
-      {!purchasing && setIsModalOpen && (
-        <PurchaseSuccessModal
+      {!promoting && setIsModalOpen && (
+        <PromoteSuccessModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
           productImage={productData.image}
@@ -110,9 +111,9 @@ const ProductPage = () => {
         <div className="min-h-screen bg-background">
           {/* Back Button */}
           <div className="container mx-auto px-4 py-6">
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button variant="ghost" onClick={() => navigate("/promote")}>
               <ChevronLeft />
-              Back Home
+              Back
             </Button>
           </div>
 
@@ -192,19 +193,22 @@ const ProductPage = () => {
                         ${productData.oldPrice}
                       </span>
                     )}
+                    <span className="text-3xl font-bold text-green-500">
+                      {productData.commission}%
+                    </span>
                   </div>
 
                   <Button
                     size="icon-lg"
-                    onClick={handlePurchase}
+                    onClick={handlePromote}
                     className="w-full gap-2"
                   >
-                    {purchasing ? (
+                    {promoting ? (
                       <Loader2 className="animate-spin" />
                     ) : (
                       <span className="flex items-center gap-2">
-                        <ShoppingCart className="h-5 w-5" />
-                        Buy
+                        <Share2 className="h-5 w-5" />
+                        Promote
                       </span>
                     )}
                   </Button>
@@ -226,9 +230,9 @@ const ProductPage = () => {
         <div className="min-h-screen bg-background">
           {/* Back Button */}
           <div className="container mx-auto px-4 py-6">
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button variant="ghost" onClick={() => navigate("/promote")}>
               <ChevronLeft />
-              Back Home
+              Back
             </Button>
           </div>
 
@@ -290,4 +294,4 @@ const ProductPage = () => {
   );
 };
 
-export default ProductPage;
+export default Promoteproduct;

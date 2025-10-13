@@ -10,7 +10,7 @@ import {
   Menu,
   Share2,
   ShoppingBag,
-  SquarePen,
+  Camera,
   Upload,
   User,
   Wallet,
@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 const Sidebar = () => {
   const merchant = true;
   const user = {
+    email: "johndoe@email.com",
     name: "John Doe",
     avatar:
       "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
@@ -40,6 +41,7 @@ const Sidebar = () => {
   const loading = false;
   const failed = false;
   const success = false;
+  const hasAnyState = Boolean(image || loading || failed || success);
 
   const navItems = [
     { path: "/", icon: <House className="size-5" />, label: "Home" },
@@ -84,47 +86,48 @@ const Sidebar = () => {
       </SheetTrigger>
       <SheetContent side="left" className="">
         <SheetHeader>
-          <SheetTitle>{user.name}</SheetTitle>
+          <SheetTitle>{user.email}</SheetTitle>
         </SheetHeader>
         {user && (
           <>
             <div className="flex items-center justify-center p-1 gap-2 rounded-full">
               {user.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.name}
-                  className="h-20 w-20 rounded-full object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="h-20 w-20 rounded-full object-cover"
+                  />
+                  {!image && !loading && !failed && !success && (
+                    <div className="absolute z-10 bottom-0 right-0 border rounded-full p-1 bg-background/90">
+                      <Camera className="h-4 w-4 cursor-pointer text-foreground" />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <User className="h-8 w-8 border rounded-full p-1" />
               )}
             </div>
-            <div className="flex items-center justify-center text-muted-foreground">
-              {!image && !loading && !failed && !success && (
-                <Button variant="outline">
-                  <SquarePen />
-                </Button>
-              )}
+
+            {hasAnyState && <div className="flex items-center justify-center text-muted-foreground">
               {image && !loading && !failed && !success && (
                 <Button variant="outline">
                   <Upload className="text-blue-500" />
                 </Button>
               )}
               {image && loading && !failed && !success && (
-                <Button variant="outline">
-                  <Loader2 className="animate-spin" />
-                </Button>
+                <Loader2 className="h-5 w-5 animate-spin" />
               )}
               {!image && !loading && failed && !success && (
-                <Button variant="outline">
-                  <X className="text-primary" />
-                </Button>
+                <X className="h-5 w-5 text-primary" />
               )}
               {!image && !loading && !failed && success && (
-                <Button variant="outline">
-                  <CircleCheckBig className="text-green-500" />
-                </Button>
+                <CircleCheckBig className="h-5 w-5 text-green-500" />
               )}
+            </div>}
+
+            <div className="flex items-center justify-center">
+              <span className="font-medium">Hi, {user.name}!</span>
             </div>
           </>
         )}

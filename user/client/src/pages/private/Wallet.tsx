@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  Plus,
   Book,
   ShoppingCart,
   DollarSign,
   Download,
   Users,
   TrendingUp,
-  Info,
+  ArrowRight,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,12 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import LoadMore from "@/components/load-more";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -34,54 +27,54 @@ import { Skeleton } from "@/components/ui/skeleton";
 const mockProducts = [
   {
     id: 1,
-    title: "Digital Marketing Mastery",
-    allowsDownload: true,
-    affiliates: 24,
-    unitsSold: 156,
-    earnings: 4680.0,
+    requested: 100000,
+    paid: 90000,
+    date: "24-10-2024",
+    status: "paid",
+    receipt: "here",
   },
   {
     id: 2,
-    title: "Modern Web Development Guide",
-    allowsDownload: true,
-    affiliates: 18,
-    unitsSold: 203,
-    earnings: 6090.0,
+    requested: 100000,
+    paid: 90000,
+    date: "24-10-2024",
+    status: "paid",
+    receipt: "here",
   },
   {
     id: 3,
-    title: "AI & Machine Learning Basics",
-    allowsDownload: false,
-    affiliates: 31,
-    unitsSold: 89,
-    earnings: 2670.0,
+    requested: 100000,
+    paid: 90000,
+    date: "24-10-2024",
+    status: "paid",
+    receipt: "here",
   },
   {
     id: 4,
-    title: "Creative Writing Workshop",
-    allowsDownload: true,
-    affiliates: 12,
-    unitsSold: 67,
-    earnings: 2010.0,
+    requested: 100000,
+    paid: 90000,
+    date: "24-10-2024",
+    status: "paid",
+    receipt: "here",
   },
   {
     id: 5,
-    title: "Photography Fundamentals",
-    allowsDownload: true,
-    affiliates: 45,
-    unitsSold: 312,
-    earnings: 9360.0,
+    requested: 100000,
+    paid: 90000,
+    date: "24-10-2024",
+    status: "paid",
+    receipt: "here",
   },
 ];
 
-const VendorDashboard = () => {
+const Wallet = () => {
   const [products] = useState(mockProducts);
   const [loading, setLoading] = useState(true);
 
   // Calculate totals
-  const totalProducts = products.length;
-  const totalUnitsSold = products.reduce((sum, p) => sum + p.unitsSold, 0);
-  const totalEarnings = products.reduce((sum, p) => sum + p.earnings, 0);
+  const totalEarnings = 100000;
+  const totalWithdrawals = 900000;
+  const availableBalance = 100000;
 
   useEffect(() => {
     setTimeout(() => {
@@ -95,16 +88,14 @@ const VendorDashboard = () => {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Affiliate Dashboard
-            </h1>
+            <h1 className="text-3xl font-bold tracking-tight">Your Wallet</h1>
             <p className="text-muted-foreground mt-1">
-              Track your affiliate performance and earnings
+              Manage and track your finances
             </p>
           </div>
           <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Promote Product
+            <ArrowRight className="mr-2 h-4 w-4" />
+            Withddraw Funds
           </Button>
         </div>
 
@@ -114,14 +105,16 @@ const VendorDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Products
+                  Total Earnings
                 </CardTitle>
                 <Book className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalProducts}</div>
+                <div className="text-2xl font-bold">
+                  {totalEarnings.toFixed(2)}
+                </div>
                 <p className="text-muted-foreground text-xs mt-1">
-                  Products you're promoting
+                  Lifetime revenue
                 </p>
               </CardContent>
             </Card>
@@ -129,32 +122,30 @@ const VendorDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Conversions
+                  Total Withdrawals
                 </CardTitle>
                 <ShoppingCart className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalUnitsSold}</div>
-                <p className="text-muted-foreground text-xs mt-1">
-                  Successful sales from your links
-                </p>
+                <div className="text-2xl font-bold">
+                  {totalWithdrawals.toFixed(2)}
+                </div>
+                <p className="text-muted-foreground text-xs mt-1"></p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Commissions
+                  Available Balance
                 </CardTitle>
                 <DollarSign className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${totalEarnings.toFixed(2)}
+                  ${availableBalance.toFixed(2)}
                 </div>
-                <p className="text-muted-foreground text-xs mt-1">
-                  Total earnings from your promotions
-                </p>
+                <p className="text-muted-foreground text-xs mt-1"></p>
               </CardContent>
             </Card>
           </div>
@@ -171,47 +162,30 @@ const VendorDashboard = () => {
         {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle>Affiliate Products</CardTitle>
+              <CardTitle>Withdrawal History</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead className="text-center">Download</TableHead>
+                      <TableHead>Requested Amount</TableHead>
                       <TableHead className="text-center">
-                        Total Clicks
+                        Payout Amount
                       </TableHead>
-                      <TableHead className="flex items-center justify-center gap-2">
-                        <TooltipProvider>
-                          Unique Clicks
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                These are unique clicks from registered users
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </TableHead>
-                      <TableHead className="text-center">Conversions</TableHead>
-                      <TableHead className="text-right">Commissions</TableHead>
+                      <TableHead className="text-center">Date</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead className="text-right">Receipt</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.map((product) => (
                       <TableRow key={product.id}>
                         <TableCell className="font-medium max-w-[200px] md:max-w-none cursor-pointer">
-                          {product.title.length > 30
-                            ? `${product.title.slice(0, 30)}...`
-                            : product.title}
+                          {product.requested}
                         </TableCell>
                         <TableCell className="text-center">
-                          {product.allowsDownload ? (
+                          {product.paid ? (
                             <Badge
                               variant="secondary"
                               className="bg-primary/10 text-primary border-primary/20"
@@ -229,16 +203,9 @@ const VendorDashboard = () => {
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
-                            <span className="font-medium">
-                              {product.affiliates}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
                             <Users className="text-muted-foreground h-3 w-3" />
                             <span className="font-medium">
-                              {product.affiliates}
+                              {product.date}
                             </span>
                           </div>
                         </TableCell>
@@ -246,12 +213,12 @@ const VendorDashboard = () => {
                           <div className="flex items-center justify-center gap-1">
                             <TrendingUp className="text-primary h-3 w-3" />
                             <span className="font-medium">
-                              {product.unitsSold}
+                              {product.status}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-semibold text-primary">
-                          ${product.earnings.toFixed(2)}
+                          ${product.receipt}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -270,4 +237,4 @@ const VendorDashboard = () => {
   );
 };
 
-export default VendorDashboard;
+export default Wallet;

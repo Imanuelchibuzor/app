@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BookOpen, Download, Landmark, MessageSquare } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import coverImg from "../assets/covers/books";
+import coverImg from "../../assets/covers/books";
 import LoadMore from "@/components/load-more";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReviewModal } from "@/components/review-modal";

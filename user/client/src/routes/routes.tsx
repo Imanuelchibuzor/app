@@ -1,24 +1,28 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import App from "../App";
-import NotFound from "../pages/NotFound";
+import NotFound from "../pages/public/NotFound";
 
-// Unauthenticated
-import Home from "../pages/Home";
-import ProductPage from "../pages/ProductPage";
-import Library from "../pages/Library";
+// Public
+import Home from "../pages/public/Home";
+import ProductPage from "../pages/public/ProductPage";
+import About from "../pages/public/About";
 
 // Auth
 import SignUp from "../pages/auth/SignUp";
-import SignUpOtp from "@/pages/auth/SignUpOtp";
+import SignUpOtp from "../pages/auth/SignUpOtp";
 import SignIn from "../pages/auth/SignIn";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPasswordOtp from "../pages/auth/ResetPasswordOtp";
 import ResetPassword from "../pages/auth/ResetPassword";
 
-// Merchant
-import VendorDashboard from "../pages/merchant/Vendor";
-import AffiliateDashboard from "../pages/merchant/Affiliate";
+// Private
+import Library from "../pages/private/Library";
+import VendorDashboard from "../pages/private/Vendor";
+import AffiliateDashboard from "../pages/private/Affiliate";
+import Promote from "../pages/private/Promote";
+import PromoteProduct from "../pages/private/PromoteProduct";
+import Wallet from "../pages/private/Wallet";
 
 const router = createBrowserRouter([
   {
@@ -28,17 +32,21 @@ const router = createBrowserRouter([
       { path: "*", element: <NotFound /> },
       { path: "/", element: <Home /> },
       { path: "/product/:id", element: <ProductPage /> },
-      { path: "/library", element: <Library /> },
-      
+      { path: "/about", element: <About /> },
+
       { path: "/sign-up", element: <SignUp /> },
       { path: "/sign-up-otp", element: <SignUpOtp /> },
       { path: "/sign-in", element: <SignIn /> },
       { path: "/forgot-password", element: <ForgotPassword /> },
       { path: "/reset-password-otp", element: <ResetPasswordOtp /> },
       { path: "/reset-password", element: <ResetPassword /> },
-
+      
+      { path: "/library", element: <Library /> },
       { path: "/vendor", element: <VendorDashboard /> },
       { path: "/affiliate", element: <AffiliateDashboard /> },
+      { path: "/promote", element: <Promote /> },
+      { path: "/promote/:id", element: <PromoteProduct /> },
+      { path: "/wallet", element: <Wallet /> },
     ],
   },
 ]);
