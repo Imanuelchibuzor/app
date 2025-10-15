@@ -1,0 +1,193 @@
+import type React from "react";
+
+import { useState } from "react";
+import { Send, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+const Contact = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear validation error when user types
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+    if (!formData.message.trim()) newErrors.message = "Message is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    console.log("Form Data Submitted:", formData);
+
+    // Simulate API submission delay
+    setTimeout(() => {
+      setIsLoading(false);
+      setIsSubmitted(true);
+      setFormData({ name: "", email: "", message: "" });
+    }, 1500);
+  };
+
+  return (
+    <div className="bg-background p-4 sm:p-8 lg:p-12 flex items-center justify-center">
+      <div className="max-w-xl w-full bg-card rounded-xl border border-border shadow-lg p-6 sm:p-10 lg:p-12">
+        {/* Header */}
+        <header className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+            <Send className="w-6 h-6 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2 text-balance">
+            Get in Touch
+          </h1>
+          <p className="text-muted-foreground text-pretty">
+            We'd love to hear from you. Send us a message and we'll get back to
+            you quickly.
+          </p>
+        </header>
+
+        {/* Contact Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Name Input */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Your Name</Label>
+            <Input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="E.g., Jane Doe"
+              className={
+                errors.name
+                  ? "border-destructive focus-visible:ring-destructive"
+                  : ""
+              }
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? "name-error" : undefined}
+            />
+            {errors.name && (
+              <p id="name-error" className="text-sm text-destructive">
+                {errors.name}
+              </p>
+            )}
+          </div>
+
+          {/* Email Input */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              className={
+                errors.email
+                  ? "border-destructive focus-visible:ring-destructive"
+                  : ""
+              }
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "email-error" : undefined}
+            />
+            {errors.email && (
+              <p id="email-error" className="text-sm text-destructive">
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Message Input */}
+          <div className="space-y-2">
+            <Label htmlFor="message">Message</Label>
+            <Textarea
+              id="message"
+              name="message"
+              rows={10}
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="How can we help you?"
+              className={
+                errors.message
+                  ? "border-destructive focus-visible:ring-destructive"
+                  : ""
+              }
+              aria-invalid={!!errors.message}
+              aria-describedby={errors.message ? "message-error" : undefined}
+            />
+            {errors.message && (
+              <p id="message-error" className="text-sm text-destructive">
+                {errors.message}
+              </p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Sending..." : "Send Message"}
+          </Button>
+        </form>
+      </div>
+
+      {/* Success Modal */}
+      <Dialog open={isSubmitted} onOpenChange={setIsSubmitted}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex justify-center mb-4">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20">
+                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500" />
+              </div>
+            </div>
+            <DialogTitle className="text-center">Message Sent!</DialogTitle>
+            <DialogDescription className="text-center">
+              We have received your message and will get back to you as soon as
+              possible.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center mt-4">
+            <Button
+              onClick={() => setIsSubmitted(false)}
+              className="w-full sm:w-auto"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Contact;

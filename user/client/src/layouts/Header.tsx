@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Separator } from "@/components/ui/separator";
 import Sidebar from "./Sidebar";
+// import Auth from "@/pages/auth/auth";
 
 const Header = () => {
   const user = {
@@ -47,6 +48,7 @@ const Header = () => {
                 >
                   Sign in
                 </Link>
+                // <Auth />
               )}
 
               <span className="h-6 w-px bg-gray-200" area-hidden="true" />

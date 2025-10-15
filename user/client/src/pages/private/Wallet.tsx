@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-  Book,
-  ShoppingCart,
   DollarSign,
   Download,
-  Users,
-  TrendingUp,
+  Wallet,
   ArrowRight,
+  Ban,
+  TrendingUp,
+  BanknoteArrowDown,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,14 +25,14 @@ import LoadMore from "@/components/load-more";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Mock data for demonstration
-const mockProducts = [
+const mockWithdrawals = [
   {
     id: 1,
     requested: 100000,
     paid: 90000,
     date: "24-10-2024",
-    status: "paid",
-    receipt: "here",
+    status: "pending",
+    receipt: "",
   },
   {
     id: 2,
@@ -39,14 +40,14 @@ const mockProducts = [
     paid: 90000,
     date: "24-10-2024",
     status: "paid",
-    receipt: "here",
+    receipt: "",
   },
   {
     id: 3,
     requested: 100000,
     paid: 90000,
     date: "24-10-2024",
-    status: "paid",
+    status: "failed",
     receipt: "here",
   },
   {
@@ -54,7 +55,7 @@ const mockProducts = [
     requested: 100000,
     paid: 90000,
     date: "24-10-2024",
-    status: "paid",
+    status: "refunded",
     receipt: "here",
   },
   {
@@ -62,19 +63,32 @@ const mockProducts = [
     requested: 100000,
     paid: 90000,
     date: "24-10-2024",
-    status: "paid",
+    status: "failed",
     receipt: "here",
   },
 ];
 
-const Wallet = () => {
-  const [products] = useState(mockProducts);
+const WalletDashboard = () => {
+  const navigate = useNavigate();
+  const [Withdrawals] = useState(mockWithdrawals);
   const [loading, setLoading] = useState(true);
 
   // Calculate totals
   const totalEarnings = 100000;
   const totalWithdrawals = 900000;
   const availableBalance = 100000;
+
+  type Status = "pending" | "paid" | "refunded" | "failed";
+
+  const getStatusColor = (status: Status) => {
+    const statusColors: Record<Status, string> = {
+      pending: "text-yellow-500 border-yellow-500",
+      paid: "text-green-500 border-green-500",
+      refunded: "text-blue-500 border-blue-500",
+      failed: "text-red-500 border-red-500",
+    };
+    return statusColors[status];
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -86,17 +100,30 @@ const Wallet = () => {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="w-full flex flex-col md:flex-row gap-4 justify-between">
+          <div className="w-full">
             <h1 className="text-3xl font-bold tracking-tight">Your Wallet</h1>
             <p className="text-muted-foreground mt-1">
               Manage and track your finances
             </p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-            <ArrowRight className="mr-2 h-4 w-4" />
-            Withddraw Funds
-          </Button>
+          <div className="w-full flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => navigate("/account")}
+            >
+              <Wallet className="mr-1 h-4 w-4" />
+              Setup Account
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => navigate("/withdraw")}
+            >
+              <ArrowRight className="mr-1 h-4 w-4" />
+              Withddraw Funds
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -107,7 +134,7 @@ const Wallet = () => {
                 <CardTitle className="text-sm font-medium">
                   Total Earnings
                 </CardTitle>
-                <Book className="text-muted-foreground h-4 w-4" />
+                <TrendingUp className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -124,13 +151,15 @@ const Wallet = () => {
                 <CardTitle className="text-sm font-medium">
                   Total Withdrawals
                 </CardTitle>
-                <ShoppingCart className="text-muted-foreground h-4 w-4" />
+                <BanknoteArrowDown className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {totalWithdrawals.toFixed(2)}
                 </div>
-                <p className="text-muted-foreground text-xs mt-1"></p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  Amount sent to your bank
+                </p>
               </CardContent>
             </Card>
 
@@ -145,7 +174,9 @@ const Wallet = () => {
                 <div className="text-2xl font-bold">
                   ${availableBalance.toFixed(2)}
                 </div>
-                <p className="text-muted-foreground text-xs mt-1"></p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  Amount available for withdrawal
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -179,13 +210,33 @@ const Wallet = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
+                    {Withdrawals.map((w) => (
+                      <TableRow key={w.id}>
                         <TableCell className="font-medium max-w-[200px] md:max-w-none cursor-pointer">
-                          {product.requested}
+                          {w.requested}
+                        </TableCell>
+                        <TableCell className="text-center">{w.paid}</TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="font-medium">{w.date}</span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-center">
-                          {product.paid ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="font-medium">
+                              {w.status && (
+                                <Badge
+                                  variant="outline"
+                                  className={getStatusColor(w.status as Status)}
+                                >
+                                  {w.status}
+                                </Badge>
+                              )}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-primary">
+                          {w.receipt ? (
                             <Badge
                               variant="secondary"
                               className="bg-primary/10 text-primary border-primary/20"
@@ -197,28 +248,9 @@ const Wallet = () => {
                               variant="outline"
                               className="text-muted-foreground"
                             >
-                              N/A
+                              <Ban className="h-3 w-3" />
                             </Badge>
                           )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Users className="text-muted-foreground h-3 w-3" />
-                            <span className="font-medium">
-                              {product.date}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <TrendingUp className="text-primary h-3 w-3" />
-                            <span className="font-medium">
-                              {product.status}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-primary">
-                          ${product.receipt}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -237,4 +269,4 @@ const Wallet = () => {
   );
 };
 
-export default Wallet;
+export default WalletDashboard;

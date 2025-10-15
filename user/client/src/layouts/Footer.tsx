@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
+import { Mail } from "lucide-react";
 import { FaYoutube, FaInstagram, FaTiktok } from "react-icons/fa";
 
 import Logo from "@/components/logo";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import LanguageModal from "@/components/language-modal";
 
 const Footer = () => {
@@ -61,36 +62,62 @@ const Footer = () => {
               <h3 className="font-semibold text-primary">Socials</h3>
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <FaYoutube className="h-4 w-4 text-primary" />
-                  </Button>
+                  <Link
+                    to="https://www.youtube.com/@saerv_app"
+                    target="_blank"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    <FaYoutube className="text-primary" />
+                  </Link>
                   <span className="block text-sm text-muted-foreground">
                     Youtube
                   </span>
                 </div>
                 <div className="flex items-center gap-2 cursor-pointer">
-                  <Button variant="outline" size="sm">
-                    <FaInstagram className="h-4 w-4 text-pink-400" />
-                  </Button>
+                  <Link
+                    to="https://www.instagram.com/saerv_app"
+                    target="_blank"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    <FaInstagram className="text-pink-400" />
+                  </Link>
                   <span className="block text-sm text-muted-foreground">
                     Instagram
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <FaTiktok className="h-4 w-4" />
-                  </Button>
-                  <span className="block text-sm text-muted-foreground">
-                    Tiktok
-                  </span>
+                <div className="flex items-center gap-2 text-foreground/80">
+                  <Link
+                    to="https://www.tiktok.com/@_saerv"
+                    target="_blank"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    <FaTiktok />
+                  </Link>
+                  <span className="block text-sm ">Tiktok</span>
                 </div>
               </div>
             </div>
 
-            {/* Language */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-primary">Language</h3>
-              <LanguageModal />
+            <div className="space-y-6">
+              {/* Language */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-primary">Language</h3>
+                <LanguageModal />
+              </div>
+
+              {/* Mail */}
+              <div className="space-y-1">
+                <h3 className="font-semibold text-primary">Email</h3>
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Link
+                    to="mailto:emmanuel@saerv.com"
+                    className={buttonVariants({ variant: "outline" })}
+                  >
+                    <Mail className="h-5 w-5" />
+                  </Link>
+                  <span className="text-sm">emmanuel@saerv.com</span>
+                </div>
+              </div>
             </div>
           </div>
 
