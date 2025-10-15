@@ -1,4 +1,11 @@
-import { Activity, Bot, Check as CheckIcon, Globe, Share2 } from "lucide-react";
+import {
+  Activity,
+  Bot,
+  Check as CheckIcon,
+  CircleQuestionMark,
+  Globe,
+  Share2,
+} from "lucide-react";
 
 // shadcn components (assumes your project has these at these paths)
 import {
@@ -32,8 +39,7 @@ const benefits: Benefit[] = [
   },
   {
     title: "Live Dashboard",
-    description:
-      "Monitor sales, conversions, and earnings from anywhere.",
+    description: "Monitor sales, conversions, and earnings from anywhere.",
     Icon: Activity,
   },
   {
@@ -283,12 +289,15 @@ const MerchantPage = () => {
           aria-labelledby="faq-heading"
           className="pt-16 pb-8 max-w-4xl mx-auto"
         >
-          <h2
-            id="faq-heading"
-            className="text-3xl font-bold tracking-tight text-center text-foreground mb-10"
-          >
-            Frequently Asked Questions
-          </h2>
+          <div className="flex items-center justify-center gap-3 mb-10">
+            <CircleQuestionMark className="w-6 h-6" />
+            <h2
+              id="faq-heading"
+              className="text-3xl font-bold tracking-tight text-center text-foreground"
+            >
+              Frequently Asked Questions
+            </h2>
+          </div>
 
           <div className="rounded-xl p-6 shadow-lg border bg-card">
             <FAQItem faqs={faqs} />

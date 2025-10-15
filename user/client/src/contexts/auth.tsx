@@ -46,6 +46,8 @@ export interface verifyEmailCredentials {
 interface AuthContextType {
   mode: AuthMode;
   setMode: (m: AuthMode) => void;
+  showAuth: boolean;
+  setShowAuth: (s: boolean) => void;
   user: User | null;
   setUser: (u: User | null) => void;
   // loading: boolean;
@@ -65,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [mode, setMode] = useState<AuthMode>("sign-in");
+  const [showAuth, setShowAuth] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   // const [loading, setLoading] = useState(false);
   // const [error, setError] = useState<string | null>(null);
@@ -125,6 +128,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: AuthContextType = {
     mode,
     setMode,
+    showAuth,
+    setShowAuth,
     user,
     setUser,
     // loading,

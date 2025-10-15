@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 
 const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
-    <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+    <div className="w-full flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className={cn("w-full max-w-md", className)} {...props}>
         <Card>
           <CardHeader className="text-center">
