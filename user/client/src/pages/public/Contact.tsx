@@ -167,7 +167,7 @@ const Contact = () => {
           <DialogHeader>
             <div className="flex justify-center mb-4">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20">
-                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500" />
+                <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-500" />
               </div>
             </div>
             <DialogTitle className="text-center">Message Sent!</DialogTitle>
@@ -176,14 +176,6 @@ const Contact = () => {
               possible.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <Button
-              onClick={() => setIsSubmitted(false)}
-              className="w-full sm:w-auto"
-            >
-              Close
-            </Button>
-          </div>
         </DialogContent>
       </Dialog>
     </div>

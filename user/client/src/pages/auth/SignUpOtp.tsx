@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { KeyRound } from "lucide-react";
 
-import { cn } from "@/libs/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,

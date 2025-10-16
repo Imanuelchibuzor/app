@@ -9,7 +9,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import LoadMore from "@/components/load-more";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 // Mock data for demonstration
 const mockProducts = [
@@ -95,10 +96,10 @@ const VendorDashboard = () => {
               Manage your products and track your sales
             </p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
+          <Link to="/add" className={buttonVariants()}>
+            <Plus className="mr-1 h-4 w-4" />
             Add Product
-          </Button>
+          </Link>
         </div>
 
         {/* Stats Cards */}

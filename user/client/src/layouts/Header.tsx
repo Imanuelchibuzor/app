@@ -13,13 +13,13 @@ import { useEffect } from "react";
 const Header = () => {
   const auth = useAuth();
 
-  // const user = {
-  //   name: "John Doe",
-  //   avatar:
-  //     "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
-  // };
+  const user = {
+    name: "John Doe",
+    avatar:
+      "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
+  };
 
-  const user = null;
+  // const user = null;
 
   // Lock body scroll while auth modal is shown
   useEffect(() => {

@@ -21,13 +21,16 @@ import ResetPassword from "../pages/auth/ResetPassword";
 
 // Private
 import Library from "../pages/private/Library";
+// import Reader from "../pages/private/Reader"
 import Notification from "../pages/private/Notifications";
 import VendorDashboard from "../pages/private/Vendor";
 import AffiliateDashboard from "../pages/private/Affiliate";
 import Promote from "../pages/private/Promote";
 import PromoteProduct from "../pages/private/PromoteProduct";
 import Wallet from "../pages/private/Wallet";
-import Accout from "../pages/private/AccountSetup";
+import Account from "../pages/private/Account";
+import Withdrawal from "../pages/private/Withdrawal"
+import AddProductPage from "@/pages/private/Add";
 
 const router = createBrowserRouter([
   {
@@ -50,13 +53,17 @@ const router = createBrowserRouter([
       { path: "/reset-password", element: <ResetPassword /> },
 
       { path: "/library", element: <Library /> },
+      // { path: "/view", element: <Reader /> },
+
       { path: "/notification", element: <Notification /> },
       { path: "/vendor", element: <VendorDashboard /> },
+      { path: "/add", element: <AddProductPage /> },
       { path: "/affiliate", element: <AffiliateDashboard /> },
       { path: "/promote", element: <Promote /> },
       { path: "/promote/:id", element: <PromoteProduct /> },
       { path: "/wallet", element: <Wallet /> },
-      { path: "/account", element: <Accout /> },
+      { path: "/account", element: <Account /> },
+      { path: "/withdraw", element: <Withdrawal /> },
     ],
   },
 ]);

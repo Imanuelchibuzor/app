@@ -1,51 +1,64 @@
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Star } from "lucide-react"
-import { cn } from "../libs/utils"
+import { useState } from "react";
+import { Star } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface ReviewModalProps {
-  isOpen: boolean
-  onClose: () => void
-  productTitle: string
+  isOpen: boolean;
+  onClose: () => void;
+  productTitle: string;
 }
 
-export function ReviewModal({ isOpen, onClose, productTitle }: ReviewModalProps) {
-  const [rating, setRating] = useState(0)
-  const [hoveredRating, setHoveredRating] = useState(0)
-  const [comment, setComment] = useState("")
+export function ReviewModal({
+  isOpen,
+  onClose,
+  productTitle,
+}: ReviewModalProps) {
+  const [rating, setRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   const handleSubmit = () => {
     if (rating === 0) {
-      alert("Please select a rating")
-      return
+      alert("Please select a rating");
+      return;
     }
 
     console.log("[v0] Submitting review:", {
       productTitle,
       rating,
       comment,
-    })
+    });
 
     // Reset form
-    setRating(0)
-    setComment("")
-    onClose()
-  }
+    setRating(0);
+    setComment("");
+    onClose();
+  };
 
   const handleClose = () => {
-    setRating(0)
-    setComment("")
-    onClose()
-  }
+    setRating(0);
+    setComment("");
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px] z-50">
         <DialogHeader className="flex flex-col gap-2 items-center justify-center">
           <DialogTitle className="text-xl">Write a Review</DialogTitle>
-          <DialogDescription className="text-base">{productTitle}</DialogDescription>
+          <DialogDescription className="text-base">
+            {productTitle}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
@@ -64,7 +77,9 @@ export function ReviewModal({ isOpen, onClose, productTitle }: ReviewModalProps)
                   <Star
                     className={cn(
                       "w-6 h-6 transition-colors cursor-pointer",
-                      (hoveredRating || rating) >= star ? "fill-primary text-primary" : "text-muted-foreground",
+                      (hoveredRating || rating) >= star
+                        ? "fill-primary text-primary"
+                        : "text-muted-foreground"
                     )}
                   />
                 </button>
@@ -92,15 +107,22 @@ export function ReviewModal({ isOpen, onClose, productTitle }: ReviewModalProps)
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
-            <Button variant="outline" onClick={handleClose} className="flex-1 bg-transparent">
+            <Button
+              variant="outline"
+              onClick={handleClose}
+              className="flex-1 bg-transparent"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} className="flex-1 bg-primary hover:bg-primary/90">
+            <Button
+              onClick={handleSubmit}
+              className="flex-1 bg-primary hover:bg-primary/90"
+            >
               Post Review
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
