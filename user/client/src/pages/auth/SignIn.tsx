@@ -16,8 +16,31 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth";
+import { Loader2 } from "lucide-react";
 
 const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
+  const auth = useAuth();
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    auth.setLoading(true);
+
+    setTimeout(() => {
+      auth.setLoading(false);
+      auth.setUser({
+        id: "1",
+        email: "johndoe@email.com",
+        name: "John Doe",
+        avatar:
+          "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
+        language: "en",
+      });
+      auth.setShowAuth(false);
+    }, 3000);
+
+    return;
+  };
+
   return (
     <div className="w-full flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className={cn("w-full max-w-md", className)} {...props}>
@@ -53,7 +76,13 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
                   <Input id="password" type="password" required />
                 </Field>
                 <Field>
-                  <Button type="submit">Login</Button>
+                  <Button type="submit" onClick={handleSignIn}>
+                    {auth.loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      "Sign in"
+                    )}
+                  </Button>
                   <Button type="button" variant="outline">
                     <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                       <path
@@ -77,12 +106,14 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
                   </Button>
                   <FieldDescription className="text-center">
                     Don&apos;t have an account?{" "}
-                    <Link
-                      to="/sign-up"
-                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      onClick={() => auth.setMode("sign-up")}
+                      className="ml-auto inline-block text-sm p-0"
                     >
                       Sign up
-                    </Link>
+                    </Button>
                   </FieldDescription>
                 </Field>
               </FieldGroup>

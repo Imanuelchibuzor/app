@@ -28,8 +28,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/auth";
 
 const Sidebar = () => {
+  const auth = useAuth();
   const merchant = true;
   const user = {
     email: "johndoe@email.com",
@@ -109,22 +111,24 @@ const Sidebar = () => {
               )}
             </div>
 
-            {hasAnyState && <div className="flex items-center justify-center text-muted-foreground">
-              {image && !loading && !failed && !success && (
-                <Button variant="outline">
-                  <Upload className="text-blue-500" />
-                </Button>
-              )}
-              {image && loading && !failed && !success && (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              )}
-              {!image && !loading && failed && !success && (
-                <X className="h-5 w-5 text-primary" />
-              )}
-              {!image && !loading && !failed && success && (
-                <CircleCheckBig className="h-5 w-5 text-green-500" />
-              )}
-            </div>}
+            {hasAnyState && (
+              <div className="flex items-center justify-center text-muted-foreground">
+                {image && !loading && !failed && !success && (
+                  <Button variant="outline">
+                    <Upload className="text-blue-500" />
+                  </Button>
+                )}
+                {image && loading && !failed && !success && (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                )}
+                {!image && !loading && failed && !success && (
+                  <X className="h-5 w-5 text-primary" />
+                )}
+                {!image && !loading && !failed && success && (
+                  <CircleCheckBig className="h-5 w-5 text-green-500" />
+                )}
+              </div>
+            )}
 
             <div className="flex items-center justify-center">
               <span className="font-medium">Hi, {user.name}!</span>
@@ -148,7 +152,7 @@ const Sidebar = () => {
         </div>
         <SheetFooter>
           <SheetClose asChild>
-            <Button variant="outline">
+            <Button variant="outline" onClick={auth.signOut}>
               <LogOut /> Logout
             </Button>
           </SheetClose>

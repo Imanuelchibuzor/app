@@ -50,8 +50,8 @@ interface AuthContextType {
   setShowAuth: (s: boolean) => void;
   user: User | null;
   setUser: (u: User | null) => void;
-  // loading: boolean;
-  // setLoading: () => Promise<void>;
+  loading: boolean;
+  setLoading: (l: boolean) => void;
   // error: string | null;
   // signIn: (creds: SignInCredentials) => Promise<void>;
   // signUp: (creds: SignUpCredentials) => Promise<void>;
@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [showAuth, setShowAuth] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  // const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   // const [error, setError] = useState<string | null>(null);
 
   // On mount, get user from local storage
@@ -91,6 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.warn("Auth persist failed", e);
     }
   }, [user]);
+
 
   // const signIn = async (creds: SignInCredentials) => {
   //   setLoading(true);
@@ -119,6 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // };
 
   const signOut = () => {
+    localStorage.removeItem("user");
     setUser(null);
     // setError(null);
     setMode("sign-in");
@@ -132,8 +134,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setShowAuth,
     user,
     setUser,
-    // loading,
-    // setLoading,
+    loading,
+    setLoading,
     // error,
     // signIn,
     // signUp,
