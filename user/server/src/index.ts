@@ -2,10 +2,13 @@ import express from "express";
 import { Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import {ServerClient} from "postmark"
 
 import cors from "./configs/cors";
 import connectDB from "./configs/db";
-import errorHandler from "./middlewares/error";
+import errorMiddleware from "./middlewares/error";
+
+import authRoutes from "./modules/auth/routes";
 
 // Initialize express and dotenv
 dotenv.config();
@@ -21,16 +24,30 @@ app.set("trust proxy", true);
 app.use(cors);
 app.use(express.json());
 app.use(cookieParser());
-app.use(errorHandler);
+
 
 // Routes
 app.get("/", (_req: Request, res: Response): void => {
   res.send("...");
 });
-
 app.get("/favicon.ico", (_req: Request, res: Response): void => {
   res.status(204).end();
 });
+app.use("/api/auth", authRoutes);
+
+// Error Middleware
+app.use(errorMiddleware);
+
+var client = new ServerClient("0dac6c58-a2fc-4801-9390-187f12fb6c00");
+
+// client.sendEmail({
+//   From: "emmanuel@saerv.com",
+//   To: "emmanuel@saerv.com",
+//   Subject: "Hello from Postmark",
+//   HtmlBody: "<strong>Hello</strong> dear Postmark user.",
+//   TextBody: "Hello from Postmark!",
+//   MessageStream: "outbound",
+// });
 
 // Start server
 const PORT = process.env.PORT || 4000;
