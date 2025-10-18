@@ -282,10 +282,7 @@ export default function AddProductPage() {
                         New Price
                       </h3>
                       <p className="mt-1">
-                        ₦
-                        {Math.round(
-                          formData.price * (1 - formData.discount / 100)
-                        )}
+                        ₦New Price
                       </p>
                     </div>
                   )}

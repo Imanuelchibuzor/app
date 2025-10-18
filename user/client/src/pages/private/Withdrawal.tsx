@@ -33,9 +33,10 @@ export default function RequestWithdrawal() {
   const availableBalance = 50000; // Example balance in Naira
 
   const [amount, setAmount] = useState("");
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(
-    listings > 5 || promotions > 5
-  );
+  const [showUpgradeDialog] = useState(listings > 5 || promotions > 5);
+  // const [showUpgradeDialog, setShowUpgradeDialog] = useState(
+  //   listings > 5 || promotions > 5
+  // );
 
   // Calculate fees and final amount
   const enteredAmount = Number.parseFloat(amount) || 0;
