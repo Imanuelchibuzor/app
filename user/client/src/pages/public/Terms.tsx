@@ -484,14 +484,13 @@ const TermsPage = () => {
               <FileText className="h-8 w-8 text-primary" />
             </div>
             <h1 className="text-4xl font-bold text-foreground">
-              Terms & Conditions
+              Saerv Terms & Conditions
             </h1>
           </div>
           <div className="flex flex-col gap-2 text-foreground/80">
-            <p className="text-lg font-semibold">Saerv Platform Agreement</p>
             <p className="text-sm">
               <span className="font-semibold">Effective / Last Updated:</span>{" "}
-              October 15, 2025
+              October 17, 2025
             </p>
           </div>
         </div>

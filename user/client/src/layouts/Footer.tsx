@@ -25,22 +25,16 @@ const Footer = () => {
               <h3 className="font-semibold text-primary">Quick Links</h3>
               <div className="flex flex-col gap-2">
                 <Link
-                  to={"/"}
+                  to={"/about"}
                   className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Home
+                  About
                 </Link>
                 <Link
                   to={"/merchant"}
                   className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Merchant
-                </Link>
-                <Link
-                  to={"/about"}
-                  className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  About
                 </Link>
                 <Link
                   to={"/contact"}
@@ -52,7 +46,13 @@ const Footer = () => {
                   to={"/terms"}
                   className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Terms
+                  Terms & Conditions
+                </Link>
+                <Link
+                  to={"/privacy"}
+                  className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
                 </Link>
               </div>
             </div>

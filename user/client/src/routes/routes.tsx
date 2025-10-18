@@ -10,6 +10,7 @@ import About from "../pages/public/About";
 import Merchant from "../pages/public/Merchant";
 import Contact from "../pages/public/Contact";
 import Terms from "../pages/public/Terms";
+import Pricacy from "../pages/public/Privacy";
 
 // Auth
 import SignUp from "../pages/auth/SignUp";
@@ -44,6 +45,7 @@ const router = createBrowserRouter([
       { path: "/merchant", element: <Merchant /> },
       { path: "/contact", element: <Contact /> },
       { path: "/terms", element: <Terms /> },
+      { path: "/privacy", element: <Pricacy /> },
 
       { path: "/sign-up", element: <SignUp /> },
       { path: "/sign-up-otp", element: <SignUpOtp /> },
