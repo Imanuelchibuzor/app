@@ -14,12 +14,13 @@ export interface IPendingUser {
 export interface IUser {
   name: string;
   email: string;
-  password: string;
-  language: string;
+  password?: string;
+  language?: string;
   avatar?: {
     id?: string;
     url?: string;
   };
+  googleId?: string;
   passwordResetOtp?: number | null;
   passwordResetExpires?: Date | null;
   createdAt?: Date;
@@ -57,7 +58,8 @@ const UserSchema: Schema<UserDocument> = new mongoose.Schema(
       lowercase: true,
       index: true,
     },
-    password: { type: String, required: true },
+    googleId: { type: String, default: "", index: true },
+    password: { type: String, default: "" },
     language: { type: String, default: "en" },
     avatar: {
       id: { type: String, default: "" },

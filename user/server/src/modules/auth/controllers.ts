@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-import { User, PendingUser } from "./model";
+import { User, PendingUser } from "../../models/user";
 import {
   signUpSchema,
   sendOtpSchema,
@@ -228,7 +228,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Verify password
-  const isMatch = await bcrypt.compare(password, user.password);
+  const isMatch = bcrypt.compare(password, user.password as string);
   if (!isMatch) {
     throw new AppError("Invalid credentials", 401, {
       code: "INVALID_CREDENTIALS",

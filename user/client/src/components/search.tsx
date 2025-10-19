@@ -21,7 +21,7 @@ const SearchForm = () => {
           type="search"
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search here ..."
-          className="shadow-sm text-sm"
+          className="shadow-sm text-sm rounded-2xl"
           onKeyDown={handleSearch}
         />
       </Field>
