@@ -187,7 +187,7 @@ const Home = () => {
             <Categories />
           </div>
         </div>
-        <div className="w-full px-6 md:px-12 grid grid-cols-1 space-y-4 lg:space-y-10 gap-12 md:grid-cols-3 lg:grid-cols-5 cursor-pointer">
+        <div className="w-full px-2 md:px-12 grid grid-cols-2 space-y-4 lg:space-y-10 gap-6 md:gap-12 md:grid-cols-3 lg:grid-cols-5 cursor-pointer">
           {!loading &&
             products.map((product) => (
               <ProductCard key={product.id} product={product} />

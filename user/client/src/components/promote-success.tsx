@@ -20,10 +20,10 @@ const PromoteSuccessModal = ({
       <DialogContent className="sm:max-w-md z-50" showCloseButton={false}>
         <div className="flex flex-col items-center justify-center space-y-6 py-4">
           {/* Success Icon */}
-          <div className="rounded-full bg-primary/10 p-3">
-            <CheckCircle2 className="h-12 w-12 text-primary" />
+          <div className="rounded-full bg-green-100 p-3">
+            <CheckCircle2 className="h-12 w-12 text-green-500" />
           </div>
-
+          
           {/* Success Message */}
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-bold text-foreground">
@@ -44,8 +44,7 @@ const PromoteSuccessModal = ({
           </div>
 
           <p className="text-foreground text-center">
-            <span className="font-semibold">Affiliate Link:</span>{" "}
-            www.saerv.com/product?1/affiliate?1
+            https://www.saerv.com/product?1/affiliate?1
           </p>
 
           {/* Action Buttons */}

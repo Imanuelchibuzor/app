@@ -22,7 +22,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     if (product.commission) {
       navigate(`/promote/${id}`);
     } else {
-      navigate(`/product/${id}`);
+      navigate(`/pub/${id}`);
     }
   };
 

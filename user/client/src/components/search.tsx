@@ -1,25 +1,30 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
 
-import { Button } from "./ui/button";
 import { Field } from "./ui/field";
 import { Input } from "./ui/input";
 
 const SearchForm = () => {
   const [search, setSearch] = useState("");
 
-  const handleSearch = () => {
-    console.log(search)
-  }
+  const handleSearch: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
+    // avoid handling Enter during IME composition
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      // use currentTarget.value to get the immediate input value
+      console.log("Search:", search);
+    }
+  };
 
   return (
-    <div className="sm:w-md md:w-lg flex items-center gap-2">
+    <div className="w-full md:w-lg flex items-center gap-2">
       <Field>
-        <Input onChange={(e) => setSearch(e.target.value)} placeholder="Search here ..." className="shadow-sm" />
+        <Input
+          type="search"
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search here ..."
+          className="shadow-sm text-sm"
+          onKeyDown={handleSearch}
+        />
       </Field>
-      <Button className="rounded-full" onClick={() => handleSearch()}>
-        <Search  />
-      </Button>
     </div>
   );
 };

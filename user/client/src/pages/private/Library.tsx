@@ -83,7 +83,7 @@ const Library = () => {
           </p>
         </div>
 
-        {!loading && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
+        {!loading && <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-16 space-y-6">
           {libraryItems.map((item) => (
             <div key={item.id} className="container">
               <div className="relative aspect-[6/7] w-full">
@@ -110,23 +110,21 @@ const Library = () => {
                     Open
                   </Button>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => handleDownload(item.id)}
                       variant="outline"
-                      className="w-full"
+                      className="flex-1"
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download
+                      <Download className="w-4 h-4" />
                     </Button>
 
                     <Button
                       onClick={() => handleReviewClick(item)}
                       variant="outline"
-                      className="w-full"
+                      className="flex-1"
                     >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Review
+                      <MessageSquare className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

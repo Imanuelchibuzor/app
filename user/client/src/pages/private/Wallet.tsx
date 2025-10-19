@@ -97,7 +97,7 @@ const WalletDashboard = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="min-h-screen bg-background p-2 md:p-8">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Header */}
         <div className="w-full flex flex-col md:flex-row gap-4 justify-between">

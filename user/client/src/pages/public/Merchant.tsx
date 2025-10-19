@@ -147,12 +147,12 @@ const MerchantPage = () => {
   };
 
   return (
-    <main className="min-h-screen p-6 sm:p-10 bg-background text-foreground">
+    <main className="min-h-screen p-2 md:p-6 sm:p-10 bg-background text-foreground">
       <div className="max-w-7xl mx-auto space-y-16 lg:space-y-20">
-        <header className="text-center pb-4" aria-labelledby="merchant-title">
+        <header className="text-center" aria-labelledby="merchant-title">
           <h1
             id="merchant-title"
-            className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-foreground"
+            className="text-3xl md:text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-foreground"
           >
             Start Selling or Promoting on{" "}
             <span className="text-primary">Saerv</span>
@@ -167,7 +167,7 @@ const MerchantPage = () => {
         <section aria-labelledby="why-join-heading" className="space-y-6">
           <h2
             id="why-join-heading"
-            className="text-3xl font-bold tracking-tight text-center text-foreground"
+            className="text-2xl md:text-3xl font-bold tracking-tight text-center text-foreground"
           >
             Why Join Us?
           </h2>
@@ -206,10 +206,10 @@ const MerchantPage = () => {
           </ul>
         </section>
 
-        <section aria-labelledby="plans-heading" className="space-y-4 pt-10">
+        <section aria-labelledby="plans-heading" className="space-y-4 pt-8">
           <h2
             id="plans-heading"
-            className="text-3xl font-bold tracking-tight text-center text-foreground"
+            className="text-2xl md:text-3xl font-bold tracking-tight text-center text-foreground"
           >
             Ready to join?
           </h2>
@@ -287,13 +287,13 @@ const MerchantPage = () => {
 
         <section
           aria-labelledby="faq-heading"
-          className="pt-16 pb-8 max-w-4xl mx-auto"
+          className="pt-12 pb-8 max-w-4xl mx-auto"
         >
           <div className="flex items-center justify-center gap-3 mb-10">
             <CircleQuestionMark className="w-6 h-6" />
             <h2
               id="faq-heading"
-              className="text-3xl font-bold tracking-tight text-center text-foreground"
+              className="text-2xl md:text-3xl font-bold tracking-tight text-center text-foreground"
             >
               Frequently Asked Questions
             </h2>

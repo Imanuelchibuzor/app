@@ -60,7 +60,7 @@ function AccordionSection({ id, icon, title, content }: TermSection) {
     <AccordionItem
       id={id}
       value={id}
-      className="border rounded-lg px-6 bg-card"
+      className="border rounded-lg px-3 bg-card"
     >
       <AccordionTrigger className="hover:no-underline">
         <div className="flex items-center gap-3">
@@ -476,15 +476,15 @@ const TermsPage = () => {
 
   return (
     <section id="main-content">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <div className="container mx-auto px-2 md:px-4 py-8 max-w-5xl">
         {/* Header */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-8 space-y-2">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <FileText className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-4xl font-bold text-foreground">
-              Saerv Terms & Conditions
+            <h1 className="text-2xl md:text-4xl font-bold text-foreground">
+              Terms & Conditions
             </h1>
           </div>
           <div className="flex flex-col gap-2 text-foreground/80">
@@ -517,7 +517,7 @@ const TermsPage = () => {
             <h2 className="text-xl font-semibold mb-4 text-foreground/80">
               Table of Contents
             </h2>
-            <ol className="space-y-2 text-sm list-decimal list-inside">
+            <ol className="space-y-2 list-decimal list-inside">
               {toc.map((i) => {
                 return (
                   <li key={i.id}>
@@ -544,7 +544,7 @@ const TermsPage = () => {
         {/* Footer */}
         <Card className="mt-8 bg-muted/50">
           <CardContent>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-muted-foreground text-center">
               By using Saerv, you acknowledge that you have read, understood,
               and agree to be bound by these Terms and Conditions.
             </p>

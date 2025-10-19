@@ -16,13 +16,13 @@ const About = () => {
   const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen p-6 sm:p-10 bg-background text-foreground">
+    <main className="min-h-screen p-2 md:p-6 sm:p-10 bg-background text-foreground">
       <div className="max-w-7xl mx-auto space-y-20 lg:space-y-24">
         {/* Hero Section */}
-        <header className="text-center pb-6" aria-labelledby="merchant-title">
+        <header className="text-center" aria-labelledby="merchant-title">
           <h1
             id="merchant-title"
-            className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-foreground text-balance"
+            className="text-3xl md:text-4xl sm:text-5xl font-extrabold tracking-tight mb-3 md:mb-6 text-foreground text-balance"
           >
             <span className="text-primary">Saerv</span> - Global Platform For
             Digital Publications

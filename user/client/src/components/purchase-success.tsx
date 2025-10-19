@@ -21,8 +21,8 @@ const PurchaseSuccessModal = ({
       <DialogContent className="sm:max-w-md z-50" showCloseButton={false}>
         <div className="flex flex-col items-center justify-center space-y-6 py-4">
           {/* Success Icon */}
-          <div className="rounded-full bg-primary/10 p-3">
-            <CheckCircle2 className="h-12 w-12 text-primary" />
+          <div className="rounded-full bg-green-100 p-3">
+            <CheckCircle2 className="h-12 w-12 text-green-500" />
           </div>
 
           {/* Success Message */}

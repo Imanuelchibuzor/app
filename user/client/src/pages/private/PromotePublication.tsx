@@ -7,6 +7,7 @@ import {
   Languages,
   BookOpen,
   Loader2,
+  EyeOff,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const productData = {
   language: "English",
   pages: 350,
   downloadable: true,
+  isExplicit: true,
   discount: 30,
   newPrice: 24.99,
   oldPrice: 35.99,
@@ -110,7 +112,7 @@ const Promoteproduct = () => {
       {!loading && (
         <div className="min-h-screen bg-background">
           {/* Back Button */}
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto p-2 mb-2">
             <Button variant="ghost" onClick={() => navigate("/promote")}>
               <ChevronLeft />
               Back
@@ -153,7 +155,7 @@ const Promoteproduct = () => {
                 <StarRating productData={productData} />
 
                 {/* Description */}
-                <ScrollArea className="max-h-[300px]">
+                <ScrollArea className="max-h-[270px]">
                   <h2 className="text-xl font-semibold mb-2">Description</h2>
                   <p className="text-muted-foreground leading-relaxed">
                     {productData.description}
@@ -163,19 +165,25 @@ const Promoteproduct = () => {
                 <Separator />
 
                 {/* Product Details */}
-                <div className="grid grid-cols-3 gap-4 text-muted-foreground">
+                <div className="grid grid-cols-4 gap-4 text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Languages className="h-5 w-5" />
                     <p className="font-medium">{productData.language}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5" />
-                    <p className="font-medium">{productData.pages} pages</p>
+                    <p className="font-medium">{productData.pages}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Download className="h-5 w-5" />
                     <p className="font-medium">
                       {productData.downloadable ? "Yes" : "No"}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <EyeOff className="h-5 w-5" />
+                    <p className="font-medium">
+                      {productData.isExplicit ? "Yes" : "No"}
                     </p>
                   </div>
                 </div>
@@ -229,7 +237,7 @@ const Promoteproduct = () => {
       {loading && (
         <div className="min-h-screen bg-background">
           {/* Back Button */}
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto p-2 mb-2">
             <Button variant="ghost" onClick={() => navigate("/promote")}>
               <ChevronLeft />
               Back
@@ -262,7 +270,8 @@ const Promoteproduct = () => {
                 <Separator />
 
                 {/* Product Details */}
-                <div className="grid grid-cols-3 gap-4 text-muted-foreground">
+                <div className="grid grid-cols-4 gap-4 text-muted-foreground">
+                  <Skeleton className="h-8 w-3/4" />
                   <Skeleton className="h-8 w-3/4" />
                   <Skeleton className="h-8 w-3/4" />
                   <Skeleton className="h-8 w-3/4" />

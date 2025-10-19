@@ -5,7 +5,7 @@ import NotFound from "../pages/public/NotFound";
 
 // Public
 import Home from "../pages/public/Home";
-import ProductPage from "../pages/public/ProductPage";
+import PublicationPage from "../pages/public/PublicationPage";
 import About from "../pages/public/About";
 import Merchant from "../pages/public/Merchant";
 import Contact from "../pages/public/Contact";
@@ -27,7 +27,7 @@ import Notification from "../pages/private/Notifications";
 import VendorDashboard from "../pages/private/Vendor";
 import AffiliateDashboard from "../pages/private/Affiliate";
 import Promote from "../pages/private/Promote";
-import PromoteProduct from "../pages/private/PromoteProduct";
+import PromotePublication from "../pages/private/PromotePublication";
 import Wallet from "../pages/private/Wallet";
 import Account from "../pages/private/Account";
 import Withdrawal from "../pages/private/Withdrawal"
@@ -40,7 +40,7 @@ const router = createBrowserRouter([
     children: [
       { path: "*", element: <NotFound /> },
       { path: "/", element: <Home /> },
-      { path: "/product/:id", element: <ProductPage /> },
+      { path: "/pub/:id", element: <PublicationPage /> },
       { path: "/about", element: <About /> },
       { path: "/merchant", element: <Merchant /> },
       { path: "/contact", element: <Contact /> },
@@ -62,7 +62,7 @@ const router = createBrowserRouter([
       { path: "/add", element: <AddProductPage /> },
       { path: "/affiliate", element: <AffiliateDashboard /> },
       { path: "/promote", element: <Promote /> },
-      { path: "/promote/:id", element: <PromoteProduct /> },
+      { path: "/promote/:id", element: <PromotePublication /> },
       { path: "/wallet", element: <Wallet /> },
       { path: "/account", element: <Account /> },
       { path: "/withdraw", element: <Withdrawal /> },

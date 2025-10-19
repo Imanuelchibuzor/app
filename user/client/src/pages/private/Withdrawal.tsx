@@ -130,7 +130,7 @@ export default function RequestWithdrawal() {
   }
 
   return (
-    <section className="container mx-auto max-w-2xl px-4 py-8">
+    <section className="container mx-auto max-w-2xl px-2 py-8">
       <div className="mb-6 text-center">
         <h1 className="text-3xl font-bold">Request Withdrawal</h1>
         <p className="text-muted-foreground">
@@ -169,7 +169,6 @@ export default function RequestWithdrawal() {
                 placeholder="0.00"
                 value={amount}
                 onChange={handleAmountChange}
-                className="text-lg"
               />
               {enteredAmount > availableBalance && (
                 <p className="text-sm text-destructive">

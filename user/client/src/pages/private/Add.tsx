@@ -1,4 +1,17 @@
 import { useState } from "react";
+import {
+  Upload,
+  FileText,
+  ImageIcon,
+  X,
+  Pencil,
+  EyeOff,
+  Languages,
+  BookOpen,
+  Download,
+  ShoppingCart,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,16 +32,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Upload,
-  FileText,
-  ImageIcon,
-  X,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { StarRating } from "@/components/reviews";
 
 // Mock data for dropdowns
 const LANGUAGES = [
@@ -105,6 +112,10 @@ export default function AddProductPage() {
     null
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const mockRating = {
+    rating: 0,
+    numberOfRatings: 0,
+  };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -223,174 +234,119 @@ export default function AddProductPage() {
 
   if (mode === "review") {
     return (
-      <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl">
-          <Card>
-            <CardHeader className="text-center mb-4">
-              <CardTitle className="text-2xl">Review Product</CardTitle>
-              <CardDescription>
-                Please review all product details before submitting
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+      <div className="min-h-screen">
+        {/* Product Details Section */}
+        <div className="container mx-auto px-2 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Product Image */}
+            <div className="flex justify-center lg:justify-end">
+              <div className="overflow-hidden w-full max-w-md rounded-xl">
+                <div className="relative aspect-[3/4] w-full">
+                  <img
+                    src={coverImagePreview as string}
+                    alt={formData.title}
+                    className="w-full object-cover"
+                  />
+                  {Number(formData.discount) > 0 && (
+                    <Badge className="absolute top-4 right-4 bg-destructive">
+                      -{formData.discount}%
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Product Information */}
+            <div className="flex flex-col gap-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-balance mb-2">
+                  {formData.title}
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  by {formData.author}
+                </p>
+              </div>
+
+              {/* Rating */}
+              <StarRating productData={mockRating} />
+
+              {/* Description */}
+              <ScrollArea className="max-h-[270px]">
+                <h2 className="text-xl font-semibold mb-2">Description</h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  {formData.description}
+                </p>
+              </ScrollArea>
+
+              <Separator />
+
               {/* Product Details */}
-              <div className="grid gap-6 grid-cols-2">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">Title</h3>
-                    <p className="mt-1 font-semibold">{formData.title}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">
-                      Author
-                    </h3>
-                    <p className="mt-1">{formData.author}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">
-                      Language
-                    </h3>
-                    <p className="mt-1">{formData.language}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">
-                      Category
-                    </h3>
-                    <p className="mt-1">{formData.category}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">
-                      Number of Pages
-                    </h3>
-                    <p className="mt-1">{formData.pages}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">Price</h3>
-                    <p className="mt-1 font-semibold">₦{formData.price}</p>
-                  </div>
-                  {formData.discount && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">
-                        Discount
-                      </h3>
-                      <p className="mt-1">{formData.discount}%</p>
-                    </div>
-                  )}
-                  {formData.discount && (
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">
-                        New Price
-                      </h3>
-                      <p className="mt-1">
-                        ₦New Price
-                      </p>
-                    </div>
-                  )}
+              <div className="grid grid-cols-4 gap-4 text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Languages className="h-5 w-5" />
+                  <p className="font-medium">{formData.language}</p>
                 </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-muted-foreground">
-                      Description
-                    </h3>
-                    <ScrollArea className="mt-1 h-50 leading-relaxed p-2 border rounded-md">
-                      {formData.description}
-                    </ScrollArea>
-                  </div>
-
-                  <div className="flex items-end gap-4">
-                    {coverImagePreview && (
-                      <img
-                        src={coverImagePreview || "/placeholder.svg"}
-                        alt="Product cover"
-                        className="h-60 w-auto rounded-lg border-2 border-border object-cover shadow-lg"
-                      />
-                    )}
-
-                    <div>
-                      <h3 className="font-medium text-muted-foreground">
-                        Product File
-                      </h3>
-                      <div className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-muted/50 p-3">
-                        <FileText className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          {formData.pdfFile?.name}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  <p className="font-medium">{formData.pages}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  <p className="font-medium">
+                    {formData.enableDownloads === "yes" ? "Yes" : "No"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <EyeOff className="h-5 w-5" />
+                  <p className="font-medium">
+                    {formData.hasExplicitContent === "yes" ? "Yes" : "No"}
+                  </p>
                 </div>
               </div>
 
-              {/* Additional Information */}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-center gap-2">
-                  {formData.isRegistered === "yes" ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <span className="text-sm">
-                    {formData.isRegistered === "yes"
-                      ? "Registered/Trademarked"
-                      : "Not Registered"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {formData.hasExplicitContent === "yes" ? (
-                    <AlertCircle className="h-5 w-5 text-destructive" />
-                  ) : (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  )}
-                  <span className="text-sm">
-                    {formData.hasExplicitContent === "yes"
-                      ? "Contains Explicit Content"
-                      : "No Explicit Content"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {formData.enableDownloads === "yes" ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <span className="text-sm">
-                    {formData.enableDownloads === "yes"
-                      ? "Downloads Enabled"
-                      : "Downloads Disabled"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {formData.enableAffiliates === "yes" ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <span className="text-sm">
-                    {formData.enableAffiliates === "yes"
-                      ? `Affiliates Enabled (${formData.affiliateCommission}% commission)`
-                      : "Affiliates Disabled"}
-                  </span>
-                </div>
-              </div>
+              <Separator />
 
-              {/* Action Buttons */}
-              <div className="flex pt-4 gap-3 justify-center">
-                <Button variant="outline" onClick={() => setMode("form")}>
-                  <ArrowLeft className="mr-1 h-4 w-4" />
-                  Edit
+              {/* Price and Buy Section */}
+              <div className="space-y-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl font-bold text-primary">
+                    $
+                    {Number(formData.price) -
+                      (Number(formData.discount) / 100) *
+                        Number(formData.price)}
+                  </span>
+                  {Number(formData.discount) > 0 && (
+                    <span className="text-xl text-muted-foreground line-through">
+                      ${formData.price}
+                    </span>
+                  )}
+                </div>
+
+                <Button size="icon-lg" className="w-full gap-2">
+                  <span className="flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    Buy
+                  </span>
                 </Button>
-                <Button onClick={handleSubmit}>Submit Product</Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex pt-12 gap-3 justify-center">
+            <Button variant="outline" onClick={() => setMode("form")}>
+              <Pencil className="mr-1 h-4 w-4" />
+              Edit
+            </Button>
+            <Button onClick={handleSubmit}>Submit</Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background px-2 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
         <Card>
           <CardHeader className="text-center">
@@ -813,65 +769,34 @@ export default function AddProductPage() {
               </div>
 
               {/* Enable Affiliates */}
-              <div className="grid grid-cols-1 md:grid-cols-2">
-                <div className="space-y-3">
-                  <Label>
-                    Would you like affiliates to promote your product?{" "}
-                    <span className="text-destructive">*</span>
-                  </Label>
-                  <RadioGroup
-                    value={formData.enableAffiliates}
-                    onValueChange={(value) =>
-                      handleInputChange("enableAffiliates", value)
-                    }
-                    className="flex gap-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes" id="affiliates-yes" />
-                      <Label htmlFor="affiliates-yes" className="font-normal">
-                        Yes
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="affiliates-no" />
-                      <Label htmlFor="affiliates-no" className="font-normal">
-                        No
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                {/* Affiliate Commission (Conditional) */}
-                {formData.enableAffiliates === "yes" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="affiliateCommission">
-                      Set Affiliates Commission (%){" "}
-                      <span className="text-destructive">*</span>
+              <div className="space-y-3">
+                <Label>
+                  Would you like affiliates to promote your product?{" "}
+                  <span className="text-destructive">*</span>
+                </Label>
+                <RadioGroup
+                  value={formData.enableAffiliates}
+                  onValueChange={(value) =>
+                    handleInputChange("enableAffiliates", value)
+                  }
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="yes" id="affiliates-yes" />
+                    <Label htmlFor="affiliates-yes" className="font-normal">
+                      Yes
                     </Label>
-                    <Input
-                      id="affiliateCommission"
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={formData.affiliateCommission}
-                      onChange={(e) =>
-                        handleInputChange("affiliateCommission", e.target.value)
-                      }
-                      placeholder="Enter commission percentage"
-                      className={cn(
-                        errors.affiliateCommission && "border-destructive"
-                      )}
-                    />
-                    {errors.affiliateCommission && (
-                      <p className="text-sm text-destructive">
-                        {errors.affiliateCommission}
-                      </p>
-                    )}
                   </div>
-                )}
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="no" id="affiliates-no" />
+                    <Label htmlFor="affiliates-no" className="font-normal">
+                      No
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
-              {/* Affiliate Commission (Conditional)
+              {/* Affiliate Commission (Conditional) */}
               {formData.enableAffiliates === "yes" && (
                 <div className="space-y-2">
                   <Label htmlFor="affiliateCommission">
@@ -898,7 +823,7 @@ export default function AddProductPage() {
                     </p>
                   )}
                 </div>
-              )} */}
+              )}
 
               {/* Review Button */}
               <div className="flex justify-center pt-4">

@@ -203,7 +203,7 @@ export default function AccountPage() {
 
   if (isEditing) {
     return (
-      <div className="container mx-auto max-w-2xl p-4 md:p-6">
+      <div className="container mx-auto max-w-2xl p-2 md:p-6">
         <Card>
           <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
             <div>
@@ -285,7 +285,7 @@ export default function AccountPage() {
             </div>
 
             {/* Account Number */}
-            <div className="space-y-2">
+            <div className="space-y-2 text-sm">
               <Label htmlFor="accountNumber">Account Number</Label>
               <Input
                 id="accountNumber"
@@ -295,9 +295,8 @@ export default function AccountPage() {
                 value={accountNumber}
                 onChange={(e) => handleAccountNumberChange(e.target.value)}
                 maxLength={10}
-                className="font-mono"
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground">
                 {accountNumber.length}/10 digits
               </p>
             </div>
@@ -380,7 +379,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl p-4 md:p-6">
+    <div className="container mx-auto max-w-2xl p-2 md:p-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Bank Account</CardTitle>

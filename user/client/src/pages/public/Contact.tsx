@@ -61,7 +61,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="bg-background p-4 sm:p-8 lg:p-12 flex items-center justify-center">
+    <div className="p-2 flex items-center justify-center">
       <div className="max-w-xl w-full bg-card rounded-xl border border-border shadow-lg p-6 sm:p-10 lg:p-12">
         {/* Header */}
         <header className="text-center mb-10">
@@ -83,12 +83,12 @@ const Contact = () => {
           <div className="space-y-2">
             <Label htmlFor="name">Your Name</Label>
             <Input
-              type="text"
+              type="name"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="E.g., Jane Doe"
+              placeholder="John Doe"
               className={
                 errors.name
                   ? "border-destructive focus-visible:ring-destructive"
