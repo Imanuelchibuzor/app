@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Loader2, Mail } from "lucide-react";
 
 import { cn } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,19 +11,53 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Mail } from "lucide-react";
+import { useAuth } from "@/contexts/auth";
 
 const ForgotPassword = ({
   className,
   ...props
 }: React.ComponentProps<"div">) => {
+  const navigate = useNavigate();
+  const auth = useAuth();
+
+  const [email, setEmail] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setEmail(e.target.value);
+    setErrors({});
+  };
+
+  const validateEmail = () => {
+    const newErrors: Record<string, string> = {};
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+    if (!email.trim()) newErrors.email = "Email is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateEmail()) return;
+
+    auth.setLoading(true);
+
+    setTimeout(() => {
+      auth.setLoading(false);
+      alert(`Verification code sent to ${email}`);
+      navigate("/reset-password-otp");
+    }, 3000);
+
+    return;
+  };
+
   return (
     <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className={cn("w-full max-w-md", className)} {...props}>
@@ -42,18 +78,45 @@ const ForgotPassword = ({
                   <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
+                    value={email}
+                    onChange={handleChange}
                     placeholder="m@example.com"
-                    required
+                    className={
+                      errors.email
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                    }
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "email-error" : undefined}
                   />
+                  {errors.email && (
+                    <p id="name-error" className="text-sm text-destructive">
+                      {errors.email}
+                    </p>
+                  )}
                 </Field>
                 <Field>
-                  <Button type="submit">Send Verification Code</Button>
-                  <FieldDescription className="text-center">
-                    <Link to="/sign-in" className="font-medium">
+                  <Button
+                    type="submit"
+                    onClick={handleSubmit}
+                    disabled={auth.loading}
+                  >
+                    {auth.loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      "Send Verification Code"
+                    )}
+                  </Button>
+                  <div className="text-center text-sm text-muted-foreground">
+                    <Link
+                      to="/sign-in"
+                      className="font-medium hover:underline underline-offset-4"
+                    >
                       Back to Login
                     </Link>
-                  </FieldDescription>
+                  </div>
                 </Field>
               </FieldGroup>
             </form>

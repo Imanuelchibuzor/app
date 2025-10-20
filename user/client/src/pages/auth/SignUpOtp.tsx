@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
-import { KeyRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { KeyRound, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,12 +22,62 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { useAuth } from "@/contexts/auth";
 
 const SignUpOtp = ({
   className,
   ...props
 }: React.ComponentProps<typeof Card>) => {
+  const navigate = useNavigate();
+  const auth = useAuth();
+
   const email = "imanuelchibuzor@gmail.com";
+  const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(60);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (timer === 0) return;
+    const interval = setInterval(() => setTimer((t) => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleResend = () => {
+    console.log("Resending OTP");
+    setTimer(60);
+  };
+
+  const validateOtp = () => {
+    const newErrors: Record<string, string> = {};
+    if (otp.length < 6) newErrors.otp = "Verification code must be 6 digits.";
+    if (!otp.trim()) newErrors.otp = "Verification code is required.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateOtp()) return;
+
+    auth.setLoading(true);
+
+    setTimeout(() => {
+      toast.success("OTP verified successfully");
+      auth.setLoading(false);
+      auth.setUser({
+        id: "1",
+        email: "johndoe@email.com",
+        name: "John Doe",
+        avatar:
+          "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
+        language: "en",
+      });
+      navigate("/");
+    }, 3000);
+
+    return;
+  };
 
   return (
     <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -46,7 +98,7 @@ const SignUpOtp = ({
               <FieldGroup>
                 <FieldGroup className="flex flex-col items-center justify-center">
                   <FieldLabel htmlFor="otp">Verification code</FieldLabel>
-                  <InputOTP maxLength={6} id="otp" required>
+                  <InputOTP maxLength={6} id="otp" onChange={setOtp} required>
                     <InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border">
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
@@ -56,11 +108,40 @@ const SignUpOtp = ({
                       <InputOTPSlot index={5} />
                     </InputOTPGroup>
                   </InputOTP>
+                  {errors.otp && (
+                    <p id="name-error" className="text-sm text-destructive">
+                      {errors.otp}
+                    </p>
+                  )}
                 </FieldGroup>
                 <FieldGroup>
-                  <Button type="submit">Verify</Button>
+                  <Button
+                    type="submit"
+                    onClick={handleSubmit}
+                    disabled={auth.loading}
+                  >
+                    {auth.loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      "Verify OTP"
+                    )}
+                  </Button>
                   <FieldDescription className="text-center">
-                    Didn&apos;t receive the code? <Link to="#">Resend</Link>
+                    Didn&apos;t receive the code?
+                    {timer > 0 ? (
+                      <span className="text-sm text-muted-foreground">
+                        {" "}
+                        Resend in {String(timer).padStart(2, "0")}s
+                      </span>
+                    ) : (
+                      <span
+                        className="text-sm text-foreground cursor-pointer"
+                        onClick={handleResend}
+                      >
+                        {" "}
+                        Resend
+                      </span>
+                    )}
                   </FieldDescription>
                 </FieldGroup>
               </FieldGroup>

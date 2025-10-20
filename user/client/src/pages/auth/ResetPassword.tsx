@@ -9,12 +9,62 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { ShieldCheck } from "lucide-react";
+import { useAuth } from "@/contexts/auth";
+import { Loader2, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const ResetPassword = ({
   className,
   ...props
 }: React.ComponentProps<"div">) => {
+  const navigate = useNavigate();
+  const auth = useAuth();
+  const [formData, setFormData] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear validation error when user types
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (formData.newPassword.length < 8)
+      newErrors.newPassword = "Password must be at least 8 characters.";
+    if (!formData.newPassword.trim())
+      newErrors.newPassword = "Password is required.";
+    if (formData.newPassword !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match.";
+    if (!formData.confirmPassword.trim())
+      newErrors.confirmPassword = "Please confirm password";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    auth.setLoading(true);
+
+    setTimeout(() => {
+      auth.setLoading(false);
+      toast.success("Password reset successfully, please sign in.");
+      navigate("/sign-in");
+    }, 3000);
+
+    return;
+  };
+
   return (
     <div className="flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className={cn("w-full max-w-md", className)} {...props}>
@@ -33,16 +83,76 @@ const ResetPassword = ({
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="new-password">New Password</FieldLabel>
-                  <Input id="new-password" type="password" required />
+                  <Input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    value={formData.newPassword}
+                    onChange={handleChange}
+                    placeholder="********"
+                    className={
+                      errors.newPassword
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                    }
+                    aria-invalid={!!errors.newPassword}
+                    aria-describedby={
+                      errors.newPassword ? "new-password-error" : undefined
+                    }
+                  />
+                  {errors.newPassword && (
+                    <p
+                      id="new-password-error"
+                      className="text-sm text-destructive"
+                    >
+                      {errors.newPassword}
+                    </p>
+                  )}
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="confirmed-password">
+                  <FieldLabel htmlFor="confirm-password">
                     Confirm Password
                   </FieldLabel>
-                  <Input id="confirmed-password" type="password" required />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="********"
+                    className={
+                      errors.confirmPassword
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                    }
+                    aria-invalid={!!errors.confirmPassword}
+                    aria-describedby={
+                      errors.confirmPassword
+                        ? "confirm-password-error"
+                        : undefined
+                    }
+                  />
+                  {errors.confirmPassword && (
+                    <p
+                      id="confirm-password-error"
+                      className="text-sm text-destructive"
+                    >
+                      {errors.confirmPassword}
+                    </p>
+                  )}
                 </Field>
                 <Field>
-                  <Button type="submit">Reset Password</Button>
+                  <Button
+                    type="submit"
+                    onClick={handleResetPassword}
+                    disabled={auth.loading}
+                  >
+                    {auth.loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      "Reset Password"
+                    )}
+                  </Button>
                 </Field>
               </FieldGroup>
             </form>
