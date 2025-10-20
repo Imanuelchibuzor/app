@@ -1,5 +1,7 @@
 import { Router } from "express";
 import {
+  googleRedirect,
+  googleCallback,
   signUp,
   resendOtp,
   verifyEmail,
@@ -13,6 +15,12 @@ import {
 
 const router = Router();
 
+// Google Auth
+router.get("/google", googleRedirect);
+
+router.get("/google/callback", googleCallback);
+
+// Manual Auth
 router.post("/sign-up", signUp);
 
 router.post("/resend-otp", resendOtp);

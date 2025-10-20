@@ -134,7 +134,7 @@ const Library = () => {
         </div>}
 
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-16 space-y-6">
             {Array.from({ length: 4 }).map((_, item) => (
               <div key={item} className="container">
                 <div className="relative aspect-[6/7] w-full">

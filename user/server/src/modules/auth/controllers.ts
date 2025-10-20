@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { randomBytes } from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -11,12 +12,22 @@ import {
   resetPasswordSchema,
 } from "./validation";
 import AppError from "../../configs/error";
-import { buildWelcomeEmail, buildResetPasswordEmail } from "./mails";
+import * as authService from "./services";
 import { sendEmail } from "../../configs/postmark";
 import { asyncHandler } from "../../utils/asyncHandler";
+import { buildWelcomeEmail, buildResetPasswordEmail } from "./mails";
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
+const GOOGLE_REDIRECT_URI = process.env.NODE_ENV === "development" ? process.env.GOOGLE_REDIRECT_URI_DEV : process.env.GOOGLE_REDIRECT_URI as string;
+const CLIENT_AFTER_LOGIN_URL = process.env.CLIENT_AFTER_LOGIN_URL || "/";
+
+if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
+  throw new AppError("Missing Google OAuth env vars", 500, { code: "MISSING_GOOGLE_CONFIG", isOperational: false });
+}
 
 const generateOTP = (): number => Math.floor(100000 + Math.random() * 900000);
 const isProd = process.env.NODE_ENV === "production";
+
 const getJWTSecret = () => {
   const key = process.env.JWT_SECRET;
   if (!key) {
@@ -33,6 +44,56 @@ const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, salt);
 };
 
+// Google Auth
+export const googleRedirect = (req: Request, res: Response): void => {
+  const state = randomBytes(12).toString("hex");
+  // store state in a short-lived cookie to validate callback (CSRF protection)
+  res.cookie("oauth_state", state, { httpOnly: true, maxAge: 5 * 60 * 1000, sameSite: "lax" });
+
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: GOOGLE_REDIRECT_URI,
+    response_type: "code",
+    scope: "openid email profile",
+    prompt: "select_account", // force account chooser
+    state,
+  });
+
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  res.redirect(url);
+};
+
+export const googleCallback = asyncHandler(async (req: Request, res: Response) => {
+  const { code, state } = req.query as { code?: string; state?: string };
+
+  const cookieState = req.cookies?.oauth_state;
+  // basic state check
+  if (!state || !cookieState || state !== cookieState) {
+    throw new AppError("Invalid OAuth state", 400, { code: "INVALID_OAUTH_STATE" });
+  }
+
+  if (!code) throw new AppError("Missing code in callback", 400, { code: "MISSING_CODE" });
+
+  // authService should exchange code, verify id_token, find-or-create user, return { token, user, redirectUrl? }
+  const result = await authService.handleGoogleCallback(code, GOOGLE_REDIRECT_URI);
+
+  // clear the state cookie
+  res.clearCookie("oauth_state");
+
+  // set auth cookie (HTTP-only) and redirect to client
+  res.cookie("token", result.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+  });
+
+  // If service returns a specific redirect target, use it; else use CLIENT_AFTER_LOGIN_URL
+  res.redirect(result.redirectUrl ?? CLIENT_AFTER_LOGIN_URL);
+});
+
+// Manual Auth
 export const signUp = asyncHandler(async (req: Request, res: Response) => {
   // Validate request body using Zod
   const parseResult = signUpSchema.safeParse(req.body);

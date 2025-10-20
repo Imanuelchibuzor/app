@@ -48,6 +48,11 @@ const PendingUserSchema: Schema<PendingUserDocument> = new mongoose.Schema(
   { timestamps: true }
 );
 
+export const PendingUser = mongoose.model<PendingUserDocument>(
+  "PendingUser",
+  PendingUserSchema
+);
+
 const UserSchema: Schema<UserDocument> = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -71,10 +76,5 @@ const UserSchema: Schema<UserDocument> = new mongoose.Schema(
   { timestamps: true }
 );
 
-const PendingUser = mongoose.model<PendingUserDocument>(
-  "PendingUser",
-  PendingUserSchema
-);
-const User = mongoose.model<UserDocument>("User", UserSchema);
+export const User = mongoose.model<UserDocument>("User", UserSchema);
 
-export { User, PendingUser };
