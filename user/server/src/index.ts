@@ -17,7 +17,7 @@ const app = express();
 connectDB();
 
 // Trust proxy
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 // Middleware
 app.use(cors);

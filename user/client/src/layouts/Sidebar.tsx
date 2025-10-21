@@ -33,7 +33,7 @@ import { useAuth } from "@/contexts/auth";
 const Sidebar = () => {
   const auth = useAuth();
   const merchant = true;
-  
+
   const image = false;
   const loading = false;
   const failed = false;

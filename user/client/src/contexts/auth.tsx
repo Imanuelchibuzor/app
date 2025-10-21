@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const decodeUser = (): User | null => {
     const match = document.cookie
       .split("; ")
-      .find((c) => c.startsWith("user_preview"));
+      .find((c) => c.startsWith("user_preview="));
     if (!match) return null;
     try {
       const val = decodeURIComponent(match.split("=")[1]);

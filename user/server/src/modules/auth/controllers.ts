@@ -84,15 +84,19 @@ export const googleCallback = asyncHandler(async (req: Request, res: Response) =
   res.cookie("token", result.token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: "strict",
+    sameSite: isProd ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
+    path: "/",
+    domain: isProd ? ".saerv.com" : "localhost",
   });
 
   res.cookie("user_preview", result.user, {
     httpOnly: false, // intentionally readable by JS
     secure: isProd,
-    sameSite: "strict",
-    maxAge: 5 * 60 * 1000,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 1 * 60 * 1000,
+    path: "/",
+    domain: isProd ? ".saerv.com" : "localhost",
   });
 
   res.redirect(CLIENT_URL);
