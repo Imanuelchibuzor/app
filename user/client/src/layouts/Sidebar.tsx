@@ -33,12 +33,7 @@ import { useAuth } from "@/contexts/auth";
 const Sidebar = () => {
   const auth = useAuth();
   const merchant = true;
-  const user = {
-    email: "johndoe@email.com",
-    name: "John Doe",
-    avatar:
-      "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
-  };
+  
   const image = false;
   const loading = false;
   const failed = false;
@@ -88,16 +83,16 @@ const Sidebar = () => {
       </SheetTrigger>
       <SheetContent side="left" className="">
         <SheetHeader>
-          <SheetTitle>{user.email}</SheetTitle>
+          <SheetTitle>{auth.user?.email}</SheetTitle>
         </SheetHeader>
-        {user && (
+        {auth.user && (
           <>
             <div className="flex items-center justify-center p-1 gap-2 rounded-full">
-              {user.avatar ? (
+              {auth.user.avatar ? (
                 <div className="relative">
                   <img
-                    src={user.avatar}
-                    alt={user.name}
+                    src={auth.user.avatar.url}
+                    alt={auth.user.name}
                     className="h-20 w-20 rounded-full object-cover"
                   />
                   {!image && !loading && !failed && !success && (
@@ -131,7 +126,7 @@ const Sidebar = () => {
             )}
 
             <div className="flex items-center justify-center">
-              <span className="font-medium">Hi, {user.name}!</span>
+              <span className="font-medium">Hi, {auth.user.name}!</span>
             </div>
           </>
         )}
