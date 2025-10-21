@@ -26,15 +26,15 @@ const Header = () => {
             <div className="ml-auto flex items-center">
               <div className="flex flex-1 items-center justify-end space-x-3 md:space-x-6">
                 {user ? (
-                  <div className="flex items-center p-1 rounded-full">
+                  <div className="flex items-center p-1 border rounded-full">
                     {user.avatar ? (
                       <img
-                        src={user.avatar}
+                        src={user.avatar.url}
                         alt="avatar"
                         className="h-8 w-8 rounded-full object-cover"
                       />
                     ) : (
-                      <User className="h-8 w-8 border rounded-full p-1" />
+                      <User className="h-8 w-8  rounded-full p-1" />
                     )}
                   </div>
                 ) : (

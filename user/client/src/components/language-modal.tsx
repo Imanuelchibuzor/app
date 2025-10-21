@@ -19,10 +19,10 @@ const LanguageModal: React.FC = () => {
     []
   );
 
-  useEffect(() => {
-    // log the selected language object for debugging
-    console.log(languages.find((lang) => lang.code === language));
-  }, [language, languages]);
+  // useEffect(() => {
+  //   // log the selected language object for debugging
+  //   console.log(languages.find((lang) => lang.code === language));
+  // }, [language, languages]);
 
   // close on Escape
   useEffect(() => {

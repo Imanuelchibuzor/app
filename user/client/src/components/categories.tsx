@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import {
   Select,
@@ -12,10 +12,6 @@ import {
 
 const Categories = () => {
   const [category, setCategory] = useState("");
-
-  useEffect(() => {
-    console.log(category);
-  }, [category]);
 
   return (
     <Select value={category} onValueChange={(v) => setCategory(v)}>

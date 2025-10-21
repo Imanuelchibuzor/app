@@ -6,8 +6,10 @@ import ProductCard from "@/components/product-card";
 import coverImg from "../../assets/covers/books";
 import { useEffect, useState } from "react";
 import LoadMore from "@/components/load-more";
+import { useAuth } from "@/contexts/auth";
 
 const Home = () => {
+  const auth = useAuth();
   const [loading, setLoading] = useState(true);
   const products = [
     {
@@ -173,9 +175,15 @@ const Home = () => {
   ];
 
   useEffect(() => {
+    const user = auth.decodeUser();
+    if (user) auth.setUser(user);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 3000);
+    }, 1500);
   }, []);
 
   return (
