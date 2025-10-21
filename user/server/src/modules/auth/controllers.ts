@@ -14,7 +14,7 @@ import {
 import AppError from "../../configs/error";
 import * as authService from "./services";
 import { sendEmail } from "../../configs/postmark";
-import { asyncHandler } from "../../utils/asyncHandler";
+import asyncHandler from "../../utils/asyncHandler";
 import { buildWelcomeEmail, buildResetPasswordEmail } from "./mails";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
@@ -78,7 +78,7 @@ export const googleCallback = asyncHandler(async (req: Request, res: Response) =
   const result = await authService.handleGoogleCallback(code, GOOGLE_REDIRECT_URI);
 
   // clear the state cookie
-  res.clearCookie("oauth_state");
+  res.clearCookie("oauth_state", { path: "/" });
 
   // set auth cookie (HTTP-only) and redirect to client
   res.cookie("token", result.token, {
@@ -148,7 +148,7 @@ export const signUp = asyncHandler(async (req: Request, res: Response) => {
   // Set temporary cookie for verification
   res.cookie("user_email", email, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isProd,
     sameSite: "strict",
     maxAge: 15 * 60 * 1000,
   });

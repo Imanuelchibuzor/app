@@ -55,7 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const val = decodeURIComponent(match.split("=")[1]);
       const user = JSON.parse(val) as User;
-      console.log(user);
       return user;
     } catch {
       return null;

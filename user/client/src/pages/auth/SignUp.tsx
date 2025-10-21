@@ -84,7 +84,7 @@ const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
 
       if (data.success) {
         toast.success(data.message);
-        navigate("/sign-up=otp");
+        navigate("/sign-up-otp");
       } else {
         toast.error(data.message);
       }
