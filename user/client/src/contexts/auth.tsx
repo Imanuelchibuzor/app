@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-  const server = `${import.meta.env.VITE_SERVER}/api/auth`;
+  const server = `${import.meta.env.VITE_SERVER}/auth`;
 
   // On mount, get user from local storage
   useEffect(() => {

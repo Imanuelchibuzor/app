@@ -32,7 +32,7 @@ app.get("/", (_req: Request, res: Response): void => {
 app.get("/favicon.ico", (_req: Request, res: Response): void => {
   res.status(204).end();
 });
-app.use("/api/auth", authRoutes);
+app.use("/auth", authRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);

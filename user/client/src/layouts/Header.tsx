@@ -32,6 +32,7 @@ const Header = () => {
                         src={user.avatar.url}
                         alt="avatar"
                         className="h-8 w-8 rounded-full object-cover"
+                        referrerPolicy="no-referrer"
                       />
                     ) : (
                       <User className="h-8 w-8  rounded-full p-1" />

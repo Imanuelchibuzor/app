@@ -94,6 +94,7 @@ const Sidebar = () => {
                     src={auth.user.avatar.url}
                     alt={auth.user.name}
                     className="h-20 w-20 rounded-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                   {!image && !loading && !failed && !success && (
                     <div className="absolute z-10 bottom-0 right-0 border rounded-full p-1 bg-background/90">
