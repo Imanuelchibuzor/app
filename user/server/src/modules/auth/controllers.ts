@@ -78,23 +78,21 @@ export const googleCallback = asyncHandler(async (req: Request, res: Response) =
   const result = await authService.handleGoogleCallback(code, GOOGLE_REDIRECT_URI);
 
   // clear the state cookie
-  res.clearCookie("oauth_state", { path: "/" });
+  res.clearCookie("oauth_state");
 
   // set auth cookie (HTTP-only) and redirect to client
   res.cookie("token", result.token, {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite: "strict",
     maxAge: 24 * 60 * 60 * 1000,
-    path: "/",
   });
 
   res.cookie("user_preview", result.user, {
     httpOnly: false, // intentionally readable by JS
     secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    sameSite: "strict",
     maxAge: 5 * 60 * 1000,
-    path: "/",
   });
 
   res.redirect(CLIENT_URL);
