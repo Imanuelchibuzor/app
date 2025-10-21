@@ -20,7 +20,6 @@ export async function sendEmail({ email, subject, html }: Mail) {
       MessageStream: "outbound",
     });
 
-    console.log("✅ Email sent:", response);
     return response;
   } catch (error: any) {
     console.error("❌ Postmark error:", error.message);

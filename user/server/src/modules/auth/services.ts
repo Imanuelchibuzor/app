@@ -124,11 +124,13 @@ async function findOrCreateUserFromGoogle(profile: {
 
 // Handle the backend callback flow: exchange code -> verify -> find/create user -> return token & user
 
-export async function handleGoogleCallback(code: string, redirectUri: string): Promise<{ token: string; user: SafeUser; redirectUrl?: string }> {
+export async function handleGoogleCallback(code: string, redirectUri: string): Promise<{ token: string; user: string; redirectUrl?: string }> {
   if (!code) throw new AppError("Missing authorization code", 400, { code: "MISSING_CODE" });
 
   const profile = await exchangeCodeAndVerify(code, redirectUri);
   const user = await findOrCreateUserFromGoogle(profile);
   const token = createToken(user);
-  return { token, user: toSafeUser(user) };
+  const safeUser = JSON.stringify(toSafeUser(user));
+
+  return { token, user: safeUser };
 }

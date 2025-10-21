@@ -19,7 +19,7 @@ import { buildWelcomeEmail, buildResetPasswordEmail } from "./mails";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
 const GOOGLE_REDIRECT_URI = process.env.NODE_ENV === "development" ? process.env.GOOGLE_REDIRECT_URI_DEV : process.env.GOOGLE_REDIRECT_URI as string;
-const CLIENT_AFTER_LOGIN_URL = process.env.CLIENT_AFTER_LOGIN_URL || "/";
+const CLIENT_URL = process.env.CLIENT as string;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
   throw new AppError("Missing Google OAuth env vars", 500, { code: "MISSING_GOOGLE_CONFIG", isOperational: false });
@@ -83,14 +83,21 @@ export const googleCallback = asyncHandler(async (req: Request, res: Response) =
   // set auth cookie (HTTP-only) and redirect to client
   res.cookie("token", result.token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
     path: "/",
   });
 
-  // If service returns a specific redirect target, use it; else use CLIENT_AFTER_LOGIN_URL
-  res.redirect(result.redirectUrl ?? CLIENT_AFTER_LOGIN_URL);
+  res.cookie("user_preview", result.user, {
+    httpOnly: false, // intentionally readable by JS
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 5 * 60 * 1000,
+    path: "/",
+  });
+
+  res.redirect(CLIENT_URL);
 });
 
 // Manual Auth
