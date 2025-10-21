@@ -65,14 +65,7 @@ const SignUpOtp = ({
     setTimeout(() => {
       toast.success("OTP verified successfully");
       auth.setLoading(false);
-      auth.setUser({
-        id: "1",
-        email: "johndoe@email.com",
-        name: "John Doe",
-        avatar:
-          "https://images.unsplash.com/photo-1499714608240-22fc6ad53fb2?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=76&q=80",
-        language: "en",
-      });
+
       navigate("/");
     }, 3000);
 
