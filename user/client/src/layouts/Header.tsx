@@ -26,7 +26,7 @@ const Header = () => {
             <div className="ml-auto flex items-center">
               <div className="flex flex-1 items-center justify-end space-x-3 md:space-x-6">
                 {user ? (
-                  <div className="flex items-center p-1 border rounded-full">
+                  <div className="flex items-center border rounded-full">
                     {user?.avatar?.url ? (
                       <img
                         src={user.avatar.url}
