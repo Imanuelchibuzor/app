@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth";
-import axios, { AxiosError } from "axios";
 import GoogleButton from "@/components/google-btn";
 
 const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
@@ -67,6 +67,7 @@ const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    localStorage.setItem("email", formData.email)
     auth.setLoading(true);
     axios.defaults.withCredentials = true;
 
@@ -84,15 +85,14 @@ const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
 
       if (data.success) {
         toast.success(data.message);
-        navigate("/sign-up-otp");
+        navigate("/verify-email");
       } else {
         toast.error(data.message);
       }
     } catch (err) {
-      console.log(err);
       let message = "Something went wrong. Please try again.";
       if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message;
+        message = err.response.data.message || err.response.data.errors;
       }
       toast.error(message);
     } finally {

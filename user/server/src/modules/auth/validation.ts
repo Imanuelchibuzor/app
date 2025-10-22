@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ota } from "zod/v4/locales";
 
 export const signUpSchema = z.object({
   name: z.string().min(1, "Name is required"),

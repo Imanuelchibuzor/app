@@ -12,7 +12,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <AuthProvider>
-        <Toaster richColors position="top-center" />
+        <Toaster richColors position="top-center" duration={4000} />
         <Header />
         <main className="relative min-h-screen flex flex-col max-w-7xl mx-auto px-4 py-8">
           <div className="flex-grow flex-1">

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Mail } from "lucide-react";
+import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
@@ -43,19 +45,36 @@ const ForgotPassword = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateEmail()) return;
 
+    localStorage.setItem("email", email);
     auth.setLoading(true);
+    axios.defaults.withCredentials = true;
 
-    setTimeout(() => {
+    try {
+      const { data } = await axios.post(
+        `${auth.server}/forgot-password`,
+        { email, language: "en" },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        navigate("/verify-otp");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
       auth.setLoading(false);
-      alert(`Verification code sent to ${email}`);
-      navigate("/reset-password-otp");
-    }, 3000);
-
-    return;
+    }
   };
 
   return (

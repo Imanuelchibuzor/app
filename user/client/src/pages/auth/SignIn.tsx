@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
@@ -44,24 +46,47 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
       newErrors.email = "Please enter a valid email address.";
     }
     if (!formData.email.trim()) newErrors.email = "Email is required.";
+    if (formData.password.length < 8)
+      newErrors.password = "Password must be at least 8 characters";
     if (!formData.password.trim()) newErrors.password = "Password is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     auth.setLoading(true);
+    axios.defaults.withCredentials = true;
 
-    setTimeout(() => {
+    try {
+      const { data } = await axios.post(
+        `${auth.server}/sign-in`,
+        {
+          email: formData.email,
+          password: formData.password,
+          language: "en",
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data.success) {
+        auth.setUser(data.user);
+        navigate("/");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
       auth.setLoading(false);
-      navigate("/");
-    }, 3000);
-
-    return;
+    }
   };
 
   return (

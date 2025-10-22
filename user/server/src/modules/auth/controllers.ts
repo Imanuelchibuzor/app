@@ -147,14 +147,6 @@ export const signUp = asyncHandler(async (req: Request, res: Response) => {
   const html = buildWelcomeEmail(name, otp);
   await sendEmail({ email, subject, html });
 
-  // Set temporary cookie for verification
-  res.cookie("user_email", email, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000,
-  });
-
   res.status(200).json({
     success: true,
     message:
@@ -298,7 +290,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Verify password
-  const isMatch = bcrypt.compare(password, user.password as string);
+  const isMatch = await bcrypt.compare(password, user.password as string);
   if (!isMatch) {
     throw new AppError("Invalid credentials", 401, {
       code: "INVALID_CREDENTIALS",
@@ -368,14 +360,6 @@ export const forgotPassword = asyncHandler(
     const subject = "Password Reset OTP - Saerv";
     const html = buildResetPasswordEmail(user.name, otp);
     await sendEmail({ email, subject, html });
-
-    // Set temporary cookie with email (15 minutes)
-    res.cookie("user_email", email, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
 
     res.status(200).json({ success: true, message: "OTP sent to email" });
   }
@@ -454,13 +438,6 @@ export const verifyPasswordResetOtp = asyncHandler(
       });
     }
 
-    res.cookie("user_otp", otp, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
-      maxAge: 15 * 60 * 1000,
-    });
-
     res.status(200).json({
       success: true,
       message: "OTP verified. Proceed to reset password.",
@@ -514,15 +491,12 @@ export const resetPassword = asyncHandler(
 
     await user.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Password reset successfully" });
+    res.status(200).json({ success: true, message: "Password reset successfully. Proceed to sign in." });
   }
 );
 
 export const signOut = (req: Request, res: Response): Response => {
   try {
-
     res.clearCookie("token", {
       httpOnly: true,
       secure: isProd,
@@ -530,18 +504,8 @@ export const signOut = (req: Request, res: Response): Response => {
       path: "/",
     });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "Logout successful." });
+    return res.status(200).json({ success: true, message: "Logout successful." });
   } catch (err) {
-    // Keep the response shape consistent — do not leak internals.
-    // eslint-disable-next-line no-console
-    console.error(
-      "Error in logout:",
-      err instanceof Error ? err.message : String(err)
-    );
-    return res
-      .status(500)
-      .json({ success: false, message: "Error logging out" });
+    return res.status(500).json({ success: false, error: err });
   }
 };

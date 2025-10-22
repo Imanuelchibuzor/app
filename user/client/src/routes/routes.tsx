@@ -48,10 +48,10 @@ const router = createBrowserRouter([
       { path: "/privacy", element: <Pricacy /> },
 
       { path: "/sign-up", element: <SignUp /> },
-      { path: "/sign-up-otp", element: <SignUpOtp /> },
+      { path: "/verify-email", element: <SignUpOtp /> },
       { path: "/sign-in", element: <SignIn /> },
       { path: "/forgot-password", element: <ForgotPassword /> },
-      { path: "/reset-password-otp", element: <ResetPasswordOtp /> },
+      { path: "/verify-otp", element: <ResetPasswordOtp /> },
       { path: "/reset-password", element: <ResetPassword /> },
 
       { path: "/library", element: <Library /> },

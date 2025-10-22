@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, Loader2 } from "lucide-react";
+import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -31,7 +32,7 @@ const ResetPasswordOtp = ({
   const navigate = useNavigate();
   const auth = useAuth();
 
-  const email = "imanuelchibuzor@gmail.com";
+  const email = localStorage.getItem("email");
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(60);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -42,33 +43,74 @@ const ResetPasswordOtp = ({
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleResend = () => {
-    console.log("Resending OTP");
-    setTimer(60);
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    auth.setLoading(true);
+    axios.defaults.withCredentials = true;
+
+    try {
+      const { data } = await axios.post(
+        `${auth.server}/resend-password-reset-otp`,
+        { email, language: "en" },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        setTimer(60);
+      } else toast.error(data.message);
+    } catch (err) {
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
+      auth.setLoading(false);
+    }
   };
 
   const validateOtp = () => {
     const newErrors: Record<string, string> = {};
     if (otp.length < 6) newErrors.otp = "Verification code must be 6 digits.";
     if (!otp.trim()) newErrors.otp = "Verification code is required.";
+    if (isNaN(Number(otp)))
+      newErrors.otp = "Verification code must be a number.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateOtp()) return;
 
     auth.setLoading(true);
+    axios.defaults.withCredentials = true;
 
-    setTimeout(() => {
-      toast.success("OTP verified successfully");
+    try {
+      const { data } = await axios.post(
+        `${auth.server}/verify-password-reset-otp`,
+        { email, otp: Number(otp) },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data.success) {
+        localStorage.setItem("otp", otp);
+        toast.success(data.message);
+        navigate("/reset-password");
+      } else toast.error(data.message);
+    } catch (err) {
+      console.log(err);
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
       auth.setLoading(false);
-      navigate("/reset-password");
-    }, 3000);
-
-    return;
+    }
   };
 
   return (

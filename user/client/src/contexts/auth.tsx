@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
 
 export interface User {
   id: string;
@@ -61,11 +63,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const signOut = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    // setError(null);
-    // localStorage cleanup will be handled by effect
+  const signOut = async () => {
+    setLoading(true);
+    axios.defaults.withCredentials = true;
+
+    try {
+      const { data } = await axios.post(`${server}/sign-out`);
+      if (data.success) {
+        setUser(null);
+        localStorage.removeItem("merchant");
+      }
+    } catch (err) {
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value: AuthContextType = {

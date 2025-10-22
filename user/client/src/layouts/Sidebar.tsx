@@ -2,19 +2,14 @@ import { Link } from "react-router-dom";
 import {
   Bell,
   ChartColumnIncreasing,
-  CircleCheckBig,
   House,
   Library,
-  Loader2,
   LogOut,
   Menu,
   Share2,
   ShoppingBag,
-  Camera,
-  Upload,
   User,
   Wallet,
-  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -32,13 +27,8 @@ import { useAuth } from "@/contexts/auth";
 
 const Sidebar = () => {
   const auth = useAuth();
+  const user = auth.user;
   const merchant = true;
-
-  const image = false;
-  const loading = false;
-  const failed = false;
-  const success = false;
-  const hasAnyState = Boolean(image || loading || failed || success);
 
   const navItems = [
     { path: "/", icon: <House className="size-5" />, label: "Home" },
@@ -85,49 +75,23 @@ const Sidebar = () => {
         <SheetHeader>
           <SheetTitle>{auth.user?.email}</SheetTitle>
         </SheetHeader>
-        {auth.user && (
+        {user && (
           <>
             <div className="flex items-center justify-center p-1 gap-2 rounded-full">
-              {auth.user.avatar ? (
-                <div className="relative">
-                  <img
-                    src={auth.user.avatar.url}
-                    alt={auth.user.name}
-                    className="h-20 w-20 rounded-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                  {!image && !loading && !failed && !success && (
-                    <div className="absolute z-10 bottom-0 right-0 border rounded-full p-1 bg-background/90">
-                      <Camera className="h-4 w-4 cursor-pointer text-foreground" />
-                    </div>
-                  )}
-                </div>
+              {user?.avatar?.url ? (
+                <img
+                  src={user.avatar.url}
+                  alt={user.name}
+                  className="h-20 w-20 rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
               ) : (
-                <User className="h-8 w-8 border rounded-full p-1" />
+                <User className="h-20 w-20 border rounded-full p-1" />
               )}
             </div>
 
-            {hasAnyState && (
-              <div className="flex items-center justify-center text-muted-foreground">
-                {image && !loading && !failed && !success && (
-                  <Button variant="outline">
-                    <Upload className="text-blue-500" />
-                  </Button>
-                )}
-                {image && loading && !failed && !success && (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                )}
-                {!image && !loading && failed && !success && (
-                  <X className="h-5 w-5 text-primary" />
-                )}
-                {!image && !loading && !failed && success && (
-                  <CircleCheckBig className="h-5 w-5 text-green-500" />
-                )}
-              </div>
-            )}
-
             <div className="flex items-center justify-center">
-              <span className="font-medium">Hi, {auth.user.name}!</span>
+              <span className="font-medium">Hi, {user.name}!</span>
             </div>
           </>
         )}

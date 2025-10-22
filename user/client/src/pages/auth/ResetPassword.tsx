@@ -1,3 +1,9 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, ShieldCheck } from "lucide-react";
+import axios, { AxiosError } from "axios";
+import { toast } from "sonner";
+
 import { cn } from "../../lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,10 +16,6 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth";
-import { Loader2, ShieldCheck } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 const ResetPassword = ({
   className,
@@ -21,6 +23,8 @@ const ResetPassword = ({
 }: React.ComponentProps<"div">) => {
   const navigate = useNavigate();
   const auth = useAuth();
+  const email = localStorage.getItem("email");
+  const otp = Number(localStorage.getItem("otp"));
   const [formData, setFormData] = useState({
     newPassword: "",
     confirmPassword: "",
@@ -50,19 +54,36 @@ const ResetPassword = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     auth.setLoading(true);
+    axios.defaults.withCredentials = true;
 
-    setTimeout(() => {
+    try {
+      const { data } = await axios.post(
+        `${auth.server}/reset-password`,
+        { email, otp, password: formData.newPassword },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data.success) {
+        localStorage.removeItem("email");
+        localStorage.removeItem("otp");
+        toast.success(data.message);
+        navigate("/sign-in");
+      } else toast.error(data.message);
+    } catch (err) {
+      console.log(err);
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
       auth.setLoading(false);
-      toast.success("Password reset successfully, please sign in.");
-      navigate("/sign-in");
-    }, 3000);
-
-    return;
+    }
   };
 
   return (

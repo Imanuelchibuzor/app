@@ -9,6 +9,8 @@ import errorMiddleware from "./middlewares/error";
 
 import authRoutes from "./modules/auth/routes";
 
+import { startOtpCleanup, startPendingUserCleanup } from "./modules/auth/jobs";
+
 // Initialize express and dotenv
 dotenv.config();
 const app = express();
@@ -24,7 +26,6 @@ app.use(cors);
 app.use(express.json());
 app.use(cookieParser());
 
-
 // Routes
 app.get("/", (_req: Request, res: Response): void => {
   res.send("...");
@@ -34,7 +35,11 @@ app.get("/favicon.ico", (_req: Request, res: Response): void => {
 });
 app.use("/auth", authRoutes);
 
-// Error Middleware
+// Jobs
+startOtpCleanup();
+startPendingUserCleanup();
+
+// Error Middleware - must be last
 app.use(errorMiddleware);
 
 // Start server
