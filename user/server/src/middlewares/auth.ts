@@ -5,7 +5,7 @@ dotenv.config();
 
 import AppError from "../configs/error";
 
-type AuthPayload = JwtPayload | Record<string, any> | string;
+type JwtUser = JwtPayload & { id: string };
 
 const getToken = (req: Request, res: Response, next: NextFunction): void | Response => {
   const token = req.cookies.token;
@@ -15,9 +15,21 @@ const getToken = (req: Request, res: Response, next: NextFunction): void | Respo
   }
 
   const secret: Secret = process.env.JWT_SECRET as Secret;
-  const decoded = jwt.verify(token, secret) as AuthPayload;
-  (req as unknown as { user?: AuthPayload }).user = decoded;
+  const decoded = jwt.verify(token, secret);
+  if (typeof decoded === "string") {
+    // unexpected token shape — treat as invalid
+    throw new AppError("Unauthorized: Invalid token payload", 401, { code: "INVALID_TOKEN" });
+  }
+
+  const payload = decoded as JwtUser;
+  if (!payload.id) {
+    throw new AppError("Unauthorized: Invalid token payload (missing id)", 401, {
+      code: "INVALID_TOKEN",
+    });
+  }
+
+  req.user = payload; 
   return next();
 };
 
-module.exports = getToken;
+export default getToken;

@@ -2,9 +2,9 @@ import { JwtPayload } from "jsonwebtoken";
 
 declare global {
   namespace Express {
-    // adjust the type to your expected payload shape
+    // payload you put on req.user after auth
     interface Request {
-      user?: JwtPayload | Record<string, any> | string;
+      user?: JwtPayload & { id: string };
     }
   }
 }
