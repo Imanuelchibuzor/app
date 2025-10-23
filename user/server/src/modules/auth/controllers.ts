@@ -118,7 +118,7 @@ export const signUp = asyncHandler(async (req: Request, res: Response) => {
   // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw new AppError("User already exists", 400);
+    throw new AppError("User already exists", 400, { code: "USER_EXISTS" });
   }
 
   // Check for pending unverified user
