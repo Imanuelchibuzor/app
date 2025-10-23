@@ -1,37 +1,25 @@
-import { Request, Response, NextFunction } from "express";
-import { Types } from "mongoose";
+import { Request, Response } from "express";
 import axios from "axios";
 
-import { User } from "../../models/user";
 import Merchant from "../../models/merchant";
+import asyncHandler from "../../utils/asyncHandler";
+import { validateUser } from "../../utils/validateUser";
 import AppError from "../../configs/error";
+import { initializeSubscriptionSchema, verifySubscriptionSchema, accountSchema } from "./validation";
 
 const paystack = axios.create({
   baseURL: "https://api.paystack.co",
   headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
 });
 
-export const createStarterMerchant = async (
+const PRO_PLAN_AMOUNT = 1000;
+const PREMIUM_PLAN_AMOUNT = 10000;
+
+export const createStarterMerchant = asyncHandler(async (
   req: Request,
   res: Response,
-  next: NextFunction
 ): Promise<Response> => {
-  const userId = req.user?.id;
-  if (!userId) {
-    // Unauthorized / not logged in
-    throw new AppError("Unauthorized. Please log in.", 401, { code: "UNAUTHORIZED" });
-  }
-
-  // Validate userId is a valid ObjectId (optional but recommended)
-  if (!Types.ObjectId.isValid(userId)) {
-    throw new AppError("Invalid user id", 400, { code: "INVALID_USER_ID" });
-  }
-
-  // Ensure user exists
-  const user = await User.findById(userId).exec();
-  if (!user) {
-    throw new AppError("User not found.", 404, { code: "USER_NOT_FOUND" });
-  }
+  const { userId, user } = await validateUser(req);
 
   // Check if merchant profile already exists
   const existingMerchant = await Merchant.findOne({ user: userId }).exec();
@@ -49,18 +37,262 @@ export const createStarterMerchant = async (
   const merchant = new Merchant({ user: userId });
   await merchant.save();
 
-  const payload = {
-    id: user._id,
-    name: user?.name,
-    email: user?.email,
-    avatar: user?.avatar,
-    language: user?.language,
-    isMerchant: true,
+  return res.status(201).json({ success: true, plan: "Starter" });
+});
+
+export const initializeProSubscription = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const parseResult = initializeSubscriptionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      errors: parseResult.error.issues.map((err) => err.message),
+    });
+  }
+  const { email } = parseResult.data;
+
+  // Check if merchant is already on paid plan
+  const payingMerchant = await Merchant.findOne({ user: userId }).exec();
+  if (payingMerchant) {
+    if (payingMerchant.plan === "pro" || payingMerchant.plan === "premium") {
+      throw new AppError("You are already on a paid plan.", 400, { code: "ALREADY_ON_PAID_PLAN" });
+    }
   }
 
-  return res.status(201).json({
-    success: true,
-    message: "You have been successfully onboarded as a Starter merchant.",
-    user: payload
+  const payload = {
+    email,
+    amount: Math.round(PRO_PLAN_AMOUNT * 100),
+    plan: "PLN_ynpdl73ponbvvj5", // Add real plan here
+  };
+
+  const response = await paystack.post("/transaction/initialize", payload);
+  if (!response.data || !response.data.status) {
+    throw new AppError("Paystack initialization returned an error", 500, { code: "PAYSTACK_INIT_ERROR" });
+  }
+
+  const data = response.data.data;
+  return res.json({ reference: data.reference });
+})
+
+export const verifyProSubscription = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const parseResult = verifySubscriptionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      errors: parseResult.error.issues.map((err) => err.message),
+    });
+  }
+  const { reference } = parseResult.data;
+
+  const verifyResp = await paystack.get(`/transaction/verify/${reference}`);
+  const verified = verifyResp.data;
+  if (!verified || !verified.data) {
+    throw new AppError("Paystack verification returned an error", 500, { code: "PAYSTACK_VERIFY_ERROR" });
+  }
+
+  // ensure payment succeeded
+  const tx = verified.data;
+  if (tx.status !== "success") {
+    throw new AppError("Payment failed", 400, { code: "PAYMENT_FAILED" });
+  }
+
+  // Create new merchant record or upgrade existing merchant to "Pro" and update subscription details
+  const existingMerchant = await Merchant.findOne({ user: userId }).exec();
+  if (!existingMerchant) {
+    const merchant = new Merchant({ user: userId, plan: "pro", subscriptionId: reference });
+    await merchant.save();
+  } else {
+    existingMerchant.plan = "pro";
+    existingMerchant.subscriptionId = reference;
+    await existingMerchant.save();
+  }
+
+  return res.status(200).json({ success: true, plan: "Pro" });
+})
+
+export const initializePremiumSubscription = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const parseResult = initializeSubscriptionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      errors: parseResult.error.issues.map((err) => err.message),
+    });
+  }
+  const { email } = parseResult.data;
+
+  // Check if merchant is already on premium plan
+  const premiumMerchant = await Merchant.findOne({ user: userId, plan: "premium" }).exec();
+  if (premiumMerchant) {
+    throw new AppError("You are already on premium plan.", 400, { code: "ALREADY_ON_PREMIUM_PLAN" });
+  }
+
+  const payload = {
+    email,
+    amount: Math.round(PREMIUM_PLAN_AMOUNT * 100),
+    plan: "PLN_ynpdl73ponbvvj5", // Add real plan here
+  };
+
+  const response = await paystack.post("/transaction/initialize", payload);
+  if (!response.data || !response.data.status) {
+    throw new AppError("Paystack initialization returned an error", 500, { code: "PAYSTACK_INIT_ERROR" });
+  }
+
+  const data = response.data.data;
+  return res.json({ reference: data.reference });
+})
+
+export const verifyPremiumSubscription = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const parseResult = verifySubscriptionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      errors: parseResult.error.issues.map((err) => err.message),
+    });
+  }
+  const { reference } = parseResult.data;
+
+  const verifyResp = await paystack.get(`/transaction/verify/${reference}`);
+  const verified = verifyResp.data;
+  if (!verified || !verified.data) {
+    throw new AppError("Paystack verification returned an error", 500, { code: "PAYSTACK_VERIFY_ERROR" });
+  }
+
+  // ensure payment succeeded
+  const tx = verified.data;
+  if (tx.status !== "success") {
+    throw new AppError("Payment failed", 400, { code: "PAYMENT_FAILED" });
+  }
+
+  // Create new merchant record or upgrade existing merchant to "Premium" and update subscription details
+  const existingMerchant = await Merchant.findOne({ user: userId }).exec();
+  if (!existingMerchant) {
+    const merchant = new Merchant({ user: userId, plan: "premium", subscriptionId: reference });
+    await merchant.save();
+  } else {
+    existingMerchant.plan = "premium";
+    existingMerchant.subscriptionId = reference;
+    await existingMerchant.save();
+  }
+
+  return res.status(200).json({ success: true, plan: "Premium" });
+})
+
+export const fetchAccount = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const merchant = await Merchant.findOne({ user: userId }).exec();
+  if (!merchant) {
+    throw new AppError("Merchant not found", 404, { code: "MERCHANT_NOT_FOUND" });
+  }
+
+  const account = {
+    code: merchant.account.code,
+    name: merchant.account.name,
+    number: merchant.account.number,
+  }
+
+  return res.status(200).json({ success: true, account });
+})
+
+export const listBanks = asyncHandler(async (req: Request, res: Response) => {
+  const { data } = await paystack.get("/bank", {
+    params: { country: "nigeria" },
   });
-};
+
+  // data.data is an array of { name, slug, code, longcode, ... }
+  const banks = data.data.map(({ name, code }: { name: string; code: string }) => ({ name, code }));
+  res.json({ success: true, banks });
+})
+
+export const verifyAccount = asyncHandler(async (req: Request, res: Response) => {
+  const parseResult = accountSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      errors: parseResult.error.issues.map((err) => err.message),
+    });
+  }
+  const { number, code } = parseResult.data;
+
+  const { data } = await paystack.get("/bank/resolve", {
+    params: {
+      account_number: number,
+      bank_code: code,
+    },
+  });
+  if (!data.status) {
+    throw new AppError(data.message, 400, { code: "ACCOUNT_VERIFICATION_FAILED" });
+  }
+
+  const info = {
+    code: code,
+    number: data.data.account_number,
+    name: data.data.account_name,
+  };
+
+  return res.json({ success: true, info });
+})
+
+export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const parseResult = accountSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      success: false,
+      errors: parseResult.error.issues.map((err) => err.message),
+    });
+  }
+  const { number, code } = parseResult.data;
+
+  const merchant = await Merchant.findOne({ user: userId }).exec();
+  if (!merchant) {
+    throw new AppError("Merchant not found", 404, { code: "MERCHANT_NOT_FOUND" });
+  }
+
+  // Verify account
+  const { data: rd } = await paystack.get("/bank/resolve", {
+    params: {
+      account_number: number,
+      bank_code: code,
+    },
+  });
+  if (!rd.status) {
+    throw new AppError(rd.message, 400, { code: "ACCOUNT_VERIFICATION_FAILED" });
+  }
+
+  // Get bank
+  const { data: banks } = await paystack.get("/bank");
+  const bank = banks.data.find((b: any) => b.code === code);
+
+  // Create transfer recipient
+  const tr = await paystack.post("/transferrecipient", {
+    type: "nuban",
+    name: rd.data.account_name,
+    account_number: number,
+    bank_code: code,
+    currency: "NGN",
+  });
+  if (!tr.data.status) {
+    throw new AppError(tr.data.message, 400, { code: "RECIPIENT_CREATION_FAILED" });
+  }
+
+  // Update the merchant record
+  merchant.account = {
+    code: code,
+    number: number,
+    bank: bank.name,
+    name: rd.data.account_name,
+    transferRecipient: tr.data.data.recipient_code,
+  };
+  await merchant.save();
+
+  return res.json({
+    success: true, account: {
+      code: merchant.account.code,
+      name: merchant.account.name,
+      number: merchant.account.number,
+    }
+  });
+});

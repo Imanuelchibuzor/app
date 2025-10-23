@@ -116,13 +116,13 @@ export const signUp = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password, language } = parseResult.data;
 
   // Check if user already exists
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email }).exec();
   if (existingUser) {
     throw new AppError("User already exists", 400, { code: "USER_EXISTS" });
   }
 
   // Check for pending unverified user
-  const pendingUser = await PendingUser.findOne({ email });
+  const pendingUser = await PendingUser.findOne({ email }).exec();
   if (pendingUser) {
     throw new AppError("OTP already sent. Please verify your email.", 400, {
       code: "OTP_ALREADY_SENT",
@@ -166,7 +166,7 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
 
   const { email, language } = parseResult.data;
 
-  const pendingUser = await PendingUser.findOne({ email });
+  const pendingUser = await PendingUser.findOne({ email }).exec();
   if (!pendingUser) {
     throw new AppError("No pending verification found.", 404, {
       code: "PENDING_NOT_FOUND",
@@ -205,7 +205,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   const { email, otp } = parseResult.data;
 
   // Find pending user
-  const pendingUser = await PendingUser.findOne({ email });
+  const pendingUser = await PendingUser.findOne({ email }).exec();
   if (!pendingUser)
     throw new AppError("Pending registration not found", 400, {
       code: "PENDING_NOT_FOUND",
@@ -284,7 +284,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response) => {
   const { email, password, language } = parseResult.data;
 
   // Find user
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).exec();
   if (!user) {
     throw new AppError("User not found", 404, { code: "USER_NOT_FOUND" });
   }
@@ -345,7 +345,7 @@ export const forgotPassword = asyncHandler(
 
     const { email, language } = parseResult.data;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).exec();
     if (!user) {
       throw new AppError("User not found", 404, { code: "USER_NOT_FOUND" });
     }
@@ -378,7 +378,7 @@ export const resendPasswordResetOtp = asyncHandler(
 
     const { email, language } = parseResult.data;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).exec();
     if (!user) {
       throw new AppError("User not found", 404, { code: "USER_NOT_FOUND" });
     }
@@ -412,7 +412,7 @@ export const verifyPasswordResetOtp = asyncHandler(
     const { email, otp } = parseResult.data;
 
     // Find pending user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).exec();
     if (!user)
       throw new AppError("User not found", 400, {
         code: "USER_NOT_FOUND",
@@ -459,7 +459,7 @@ export const resetPassword = asyncHandler(
     const { email, otp, password } = parseResult.data;
 
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).exec();
     if (!user) {
       throw new AppError("User not found", 404, { code: "USER_NOT_FOUND" });
     }

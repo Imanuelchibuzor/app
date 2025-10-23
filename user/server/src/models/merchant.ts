@@ -5,8 +5,8 @@ export interface IMerchant {
 
   // Subscription info
   plan: string;
-  subscriptionStatus: string;
-  paystackSubscriptionId: string;
+  status: string;
+  subscriptionId: string;
 
   // Wallet info
   totalEarnings: number;
@@ -41,13 +41,13 @@ const MerchantSchema: Schema<MerchantDocument> = new mongoose.Schema(
       default: "starter",
       index: true,
     },
-    subscriptionStatus: {
+    status: {
       type: String,
-      enum: ["none", "active", "cancelled"],
-      default: "none",
+      enum: [ "active", "cancelled"],
+      default: "active",
       index: true,
     },
-    paystackSubscriptionId: {
+    subscriptionId: {
       type: String,
       trim: true,
       default: "",
