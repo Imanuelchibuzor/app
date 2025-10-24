@@ -15,7 +15,7 @@ export const sendOtpSchema = z.object({
 export const verifyEmailSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   otp: z.number().min(6, "Please enter a valid OTP"),
-})
+});
 
 export const signInSchema = z.object({
   email: z.string().email("Please enter a valid email"),

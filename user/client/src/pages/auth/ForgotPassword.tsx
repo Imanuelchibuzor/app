@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Mail } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -22,7 +22,7 @@ const ForgotPassword = ({
   ...props
 }: React.ComponentProps<"div">) => {
   const navigate = useNavigate();
-  const auth = useAuth();
+  const { axios, loading, setLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -50,15 +50,13 @@ const ForgotPassword = ({
     if (!validateEmail()) return;
 
     localStorage.setItem("email", email);
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/forgot-password`,
-        { email, language: "en" },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/forgot-password", {
+        email,
+        language: "en",
+      });
 
       if (data.success) {
         toast.success(data.message);
@@ -73,7 +71,7 @@ const ForgotPassword = ({
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -120,9 +118,9 @@ const ForgotPassword = ({
                   <Button
                     type="submit"
                     onClick={handleSubmit}
-                    disabled={auth.loading}
+                    disabled={loading}
                   >
-                    {auth.loading ? (
+                    {loading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       "Send Verification Code"

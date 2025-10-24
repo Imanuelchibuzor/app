@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -25,7 +25,7 @@ import GoogleButton from "@/components/google-btn";
 
 const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
   const navigate = useNavigate();
-  const auth = useAuth();
+  const { axios, loading, setLoading, setUser } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -58,22 +58,17 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/sign-in`,
-        {
-          email: formData.email,
-          password: formData.password,
-          language: "en",
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/sign-in", {
+        email: formData.email,
+        password: formData.password,
+        language: "en",
+      });
 
       if (data.success) {
-        auth.setUser(data.user);
+        setUser(data.user);
         navigate("/");
       } else {
         toast.error(data.message);
@@ -85,7 +80,7 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -170,9 +165,9 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
                   <Button
                     type="submit"
                     onClick={handleSignIn}
-                    disabled={auth.loading}
+                    disabled={loading}
                   >
-                    {auth.loading ? (
+                    {loading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       "Sign in"

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, Loader2 } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ const SignUpOtp = ({
   ...props
 }: React.ComponentProps<typeof Card>) => {
   const navigate = useNavigate();
-  const auth = useAuth();
+  const { axios, loading, setLoading, setUser } = useAuth();
 
   const email = localStorage.getItem("email");
   const [otp, setOtp] = useState("");
@@ -47,15 +47,13 @@ const SignUpOtp = ({
     e.preventDefault();
     setTimer(60);
 
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/resend-otp`,
-        { email, language: "en" },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/resend-otp", {
+        email,
+        language: "en",
+      });
 
       if (data.success) {
         toast.success(data.message);
@@ -68,7 +66,7 @@ const SignUpOtp = ({
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -87,20 +85,18 @@ const SignUpOtp = ({
     e.preventDefault();
     if (!validateOtp()) return;
 
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/verify-email`,
-        { email, otp: Number(otp) },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/verify-email", {
+        email,
+        otp: Number(otp),
+      });
 
       if (data.success) {
         toast.success(data.message);
         localStorage.removeItem("email");
-        auth.setUser(data.user);
+        setUser(data.user);
         navigate("/");
       } else toast.error(data.message);
     } catch (err) {
@@ -111,7 +107,7 @@ const SignUpOtp = ({
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -154,9 +150,9 @@ const SignUpOtp = ({
                   <Button
                     type="submit"
                     onClick={handleSubmit}
-                    disabled={auth.loading}
+                    disabled={loading}
                   >
-                    {auth.loading ? (
+                    {loading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       "Verify OTP"

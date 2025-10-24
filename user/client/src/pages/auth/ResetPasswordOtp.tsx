@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, Loader2 } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ const ResetPasswordOtp = ({
   ...props
 }: React.ComponentProps<typeof Card>) => {
   const navigate = useNavigate();
-  const auth = useAuth();
+  const { axios, loading, setLoading } = useAuth();
 
   const email = localStorage.getItem("email");
   const [otp, setOtp] = useState("");
@@ -46,15 +46,13 @@ const ResetPasswordOtp = ({
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/resend-password-reset-otp`,
-        { email, language: "en" },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/resend-password-reset-otp", {
+        email,
+        language: "en",
+      });
 
       if (data.success) {
         toast.success(data.message);
@@ -67,7 +65,7 @@ const ResetPasswordOtp = ({
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -86,15 +84,13 @@ const ResetPasswordOtp = ({
     e.preventDefault();
     if (!validateOtp()) return;
 
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/verify-password-reset-otp`,
-        { email, otp: Number(otp) },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/verify-password-reset-otp", {
+        email,
+        otp: Number(otp),
+      });
 
       if (data.success) {
         localStorage.setItem("otp", otp);
@@ -109,7 +105,7 @@ const ResetPasswordOtp = ({
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -152,9 +148,9 @@ const ResetPasswordOtp = ({
                   <Button
                     type="submit"
                     onClick={handleSubmit}
-                    disabled={auth.loading}
+                    disabled={loading}
                   >
-                    {auth.loading ? (
+                    {loading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       "Verify OTP"

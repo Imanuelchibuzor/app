@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, ShieldCheck } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -22,7 +22,7 @@ const ResetPassword = ({
   ...props
 }: React.ComponentProps<"div">) => {
   const navigate = useNavigate();
-  const auth = useAuth();
+  const { axios, loading, setLoading } = useAuth();
   const email = localStorage.getItem("email");
   const otp = Number(localStorage.getItem("otp"));
   const [formData, setFormData] = useState({
@@ -58,15 +58,14 @@ const ResetPassword = ({
     e.preventDefault();
     if (!validateForm()) return;
 
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/reset-password`,
-        { email, otp, password: formData.newPassword },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/reset-password", {
+        email,
+        otp,
+        password: formData.newPassword,
+      });
 
       if (data.success) {
         localStorage.removeItem("email");
@@ -82,7 +81,7 @@ const ResetPassword = ({
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -166,9 +165,9 @@ const ResetPassword = ({
                   <Button
                     type="submit"
                     onClick={handleResetPassword}
-                    disabled={auth.loading}
+                    disabled={loading}
                   >
-                    {auth.loading ? (
+                    {loading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       "Reset Password"

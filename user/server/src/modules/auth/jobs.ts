@@ -20,7 +20,7 @@ const clearExpiredPasswordResetOtp = async () => {
   } catch (err) {
     console.error("[OTP Cleanup] Error clearing expired OTPs:", err);
   }
-}
+};
 
 const clearExpiredPendingUsers = async () => {
   const cutOff = new Date(new Date().getTime() - 24 * 60 * 60 * 1000); // 24hrs
@@ -34,22 +34,20 @@ const clearExpiredPendingUsers = async () => {
   } catch (err) {
     console.error("[OTP Cleanup] Error deleting expired pending users:", err);
   }
-}
+};
 
 export const startOtpCleanup = () => {
   // Cron expression to run at minute 0 of every hour.
   cron.schedule("0 * * * *", async () => {
     console.info("[OTP Cleanup] Running expired OTP cleanup job...");
     await clearExpiredPasswordResetOtp();
-  }
-  );
-}
+  });
+};
 
 export const startPendingUserCleanup = () => {
   // Cron expression to run at minute 0 of every hour.
   cron.schedule("0 * * * *", async () => {
     console.info("[OTP Cleanup] Running expired pending user cleanup job...");
     await clearExpiredPendingUsers();
-  }
-  );
-}
+  });
+};

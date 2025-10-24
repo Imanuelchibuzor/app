@@ -7,7 +7,6 @@ import {
   Share2,
 } from "lucide-react";
 
-// shadcn components (assumes your project has these at these paths)
 import {
   Accordion,
   AccordionContent,
@@ -15,8 +14,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import StarterButton from "@/components/starter-btn";
+import ProButton from "@/components/pro-btn";
+import PremiumButton from "@/components/premium-btn";
+import { useState } from "react";
+import SubscriptionSuccessModal from "@/components/subscription-success";
 
 type Benefit = {
   title: string;
@@ -47,51 +50,6 @@ const benefits: Benefit[] = [
     description:
       "Solo creators, digital agencies, and affiliates — Saerv makes selling seamless.",
     Icon: Globe,
-  },
-];
-
-const plans = [
-  {
-    name: "Starter",
-    price: "₦0",
-    period: "/ month",
-    isPopular: false,
-    features: [
-      "Add up to 5 products",
-      "Allow up to 10 promoted products",
-      "Minimum withdrawal: ₦2,500",
-      "Platform fee on withdrawal: 10% (of withdrawn amount)",
-      "Payout timeline: every Friday",
-    ],
-    buttonText: "Start Free",
-  },
-  {
-    name: "Pro",
-    price: "₦1,000",
-    period: "/ month",
-    isPopular: true,
-    features: [
-      "Add up to 25 products",
-      "Allow up to 50 promoted products",
-      "Minimum withdrawal: ₦1,000",
-      "Platform fee on withdrawal: 10% (of withdrawn amount)",
-      "Payout timeline: instant (within minutes)",
-    ],
-    buttonText: "Get Pro",
-  },
-  {
-    name: "Premium",
-    price: "₦10,000",
-    period: "/ month",
-    isPopular: false,
-    features: [
-      "Unlimited product listings",
-      "Unlimited promotions",
-      "Minimum withdrawal: ₦1,000",
-      "Platform fee on withdrawal: 5% (of withdrawn amount)",
-      "Payout timeline: instant (within minutes)",
-    ],
-    buttonText: "Get Premium",
   },
 ];
 
@@ -140,11 +98,87 @@ function FAQItem({ faqs }: { faqs: { q: string; a: string }[] }) {
   );
 }
 
+export type Props = {
+  plan: string;
+  setPlan: (plan: string) => void;
+  subscribing: boolean;
+  setSubscribing: (subscribing: boolean) => void;
+  setSuccess: (success: boolean) => void;
+};
+
 const MerchantPage = () => {
-  const handleSubscriptionClick = (planName: string) => {
-    // wire this to your subscription flow
-    console.log(`Attempting to subscribe to ${planName}`);
-  };
+  const [plan, setPlan] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const plans = [
+    {
+      name: "Starter",
+      price: "₦0",
+      period: "/ month",
+      isPopular: false,
+      features: [
+        "Add up to 5 products",
+        "Allow up to 10 promoted products",
+        "Minimum withdrawal: ₦2,500",
+        "Platform fee on withdrawal: 10% (of withdrawn amount)",
+        "Payout timeline: every Friday",
+      ],
+      button: (
+        <StarterButton
+          plan={plan}
+          setPlan={setPlan}
+          subscribing={subscribing}
+          setSubscribing={setSubscribing}
+          setSuccess={setSuccess}
+        />
+      ),
+    },
+    {
+      name: "Pro",
+      price: "₦1,000",
+      period: "/ month",
+      isPopular: true,
+      features: [
+        "Add up to 25 products",
+        "Allow up to 50 promoted products",
+        "Minimum withdrawal: ₦1,000",
+        "Platform fee on withdrawal: 10% (of withdrawn amount)",
+        "Payout timeline: instant (within minutes)",
+      ],
+      button: (
+        <ProButton
+          plan={plan}
+          setPlan={setPlan}
+          subscribing={subscribing}
+          setSubscribing={setSubscribing}
+          setSuccess={setSuccess}
+        />
+      ),
+    },
+    {
+      name: "Premium",
+      price: "₦10,000",
+      period: "/ month",
+      isPopular: false,
+      features: [
+        "Unlimited product listings",
+        "Unlimited promotions",
+        "Minimum withdrawal: ₦1,000",
+        "Platform fee on withdrawal: 5% (of withdrawn amount)",
+        "Payout timeline: instant (within minutes)",
+      ],
+      button: (
+        <PremiumButton
+          plan={plan}
+          setPlan={setPlan}
+          subscribing={subscribing}
+          setSubscribing={setSubscribing}
+          setSuccess={setSuccess}
+        />
+      ),
+    },
+  ];
 
   return (
     <main className="min-h-screen p-2 md:p-6 sm:p-10 bg-background text-foreground">
@@ -271,15 +305,7 @@ const MerchantPage = () => {
                   </ul>
                 </div>
 
-                <div className="mt-6">
-                  <Button
-                    onClick={() => handleSubscriptionClick(plan.name)}
-                    className="w-full"
-                    aria-label={`${plan.buttonText} for ${plan.name}`}
-                  >
-                    {plan.buttonText}
-                  </Button>
-                </div>
+                <div className="mt-6">{plan.button}</div>
               </article>
             ))}
           </div>
@@ -304,6 +330,14 @@ const MerchantPage = () => {
           </div>
         </section>
       </div>
+
+      {success && (
+        <SubscriptionSuccessModal
+          open={success}
+          onOpenChange={setSuccess}
+          plan={plan}
+        />
+      )}
     </main>
   );
 };

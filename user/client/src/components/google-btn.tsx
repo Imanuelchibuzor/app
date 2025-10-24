@@ -2,12 +2,12 @@ import { useAuth } from "@/contexts/auth";
 import { Button } from "./ui/button";
 
 const GoogleButton = () => {
-  const auth = useAuth();
+  const {server, loading, setLoading} = useAuth();
 
   const initiateGoogleAuthRedirect = (): void => {
-    auth.setLoading(true);
+    setLoading(true);
     // Use assign so the browser follows server redirects and accepts cookies.
-    const url = `${auth.server}/google`;
+    const url = `${server}/auth/google`;
     window.location.assign(url);
   };
 
@@ -16,7 +16,7 @@ const GoogleButton = () => {
       type="button"
       variant="outline"
       onClick={initiateGoogleAuthRedirect}
-      disabled={auth.loading}
+      disabled={loading}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
         <path

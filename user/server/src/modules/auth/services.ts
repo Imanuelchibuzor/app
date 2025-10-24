@@ -58,7 +58,10 @@ async function exchangeCodeAndVerify(code: string, redirectUri: string) {
   // Exchange code for tokens
   const { tokens } = await client.getToken({ code, redirect_uri: redirectUri });
   const idToken = tokens.id_token;
-  if (!idToken) throw new AppError("No id_token received from Google", 401, { code: "NO_ID_TOKEN" });
+  if (!idToken)
+    throw new AppError("No id_token received from Google", 401, {
+      code: "NO_ID_TOKEN",
+    });
 
   // Verify id_token and get payload
   const ticket = await client.verifyIdToken({
@@ -67,7 +70,9 @@ async function exchangeCodeAndVerify(code: string, redirectUri: string) {
   });
   const payload = ticket.getPayload();
   if (!payload || !payload.sub) {
-    throw new AppError("Invalid Google id_token payload", 401, { code: "INVALID_ID_TOKEN" });
+    throw new AppError("Invalid Google id_token payload", 401, {
+      code: "INVALID_ID_TOKEN",
+    });
   }
 
   return {
@@ -103,7 +108,8 @@ async function findOrCreateUserFromGoogle(profile: {
       // Link googleId to this existing account (common and user-friendly)
       user.googleId = googleId;
       // set avatar if missing
-      if (!user.avatar || !user.avatar.url) user.avatar = { url: picture ?? "", id: "" };
+      if (!user.avatar || !user.avatar.url)
+        user.avatar = { url: picture ?? "", id: "" };
       await user.save();
       return user;
     }
@@ -124,8 +130,14 @@ async function findOrCreateUserFromGoogle(profile: {
 
 // Handle the backend callback flow: exchange code -> verify -> find/create user -> return token & user
 
-export async function handleGoogleCallback(code: string, redirectUri: string): Promise<{ token: string; user: string; redirectUrl?: string }> {
-  if (!code) throw new AppError("Missing authorization code", 400, { code: "MISSING_CODE" });
+export async function handleGoogleCallback(
+  code: string,
+  redirectUri: string
+): Promise<{ token: string; user: string; redirectUrl?: string }> {
+  if (!code)
+    throw new AppError("Missing authorization code", 400, {
+      code: "MISSING_CODE",
+    });
 
   const profile = await exchangeCodeAndVerify(code, redirectUri);
   const user = await findOrCreateUserFromGoogle(profile);

@@ -8,6 +8,7 @@ import connectDB from "./configs/db";
 import errorMiddleware from "./middlewares/error";
 
 import authRoutes from "./modules/auth/routes";
+import merchantRoutes from "./modules/merchant/routes";
 
 import { startOtpCleanup, startPendingUserCleanup } from "./modules/auth/jobs";
 
@@ -34,6 +35,7 @@ app.get("/favicon.ico", (_req: Request, res: Response): void => {
   res.status(204).end();
 });
 app.use("/auth", authRoutes);
+app.use("/merchant", merchantRoutes);
 
 // Jobs
 startOtpCleanup();

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -25,7 +25,7 @@ import GoogleButton from "@/components/google-btn";
 
 const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
   const navigate = useNavigate();
-  const auth = useAuth();
+  const { axios, loading, setLoading } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -67,21 +67,16 @@ const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    localStorage.setItem("email", formData.email)
-    auth.setLoading(true);
-    axios.defaults.withCredentials = true;
+    localStorage.setItem("email", formData.email);
+    setLoading(true);
 
     try {
-      const { data } = await axios.post(
-        `${auth.server}/sign-up`,
-        {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          language: "en",
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await axios.post("/auth/sign-up", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        language: "en",
+      });
 
       if (data.success) {
         toast.success(data.message);
@@ -96,7 +91,7 @@ const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
       }
       toast.error(message);
     } finally {
-      auth.setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -247,9 +242,9 @@ const SignUp = ({ className, ...props }: React.ComponentProps<typeof Card>) => {
                     <Button
                       type="submit"
                       onClick={handleSignUp}
-                      disabled={auth.loading}
+                      disabled={loading}
                     >
-                      {auth.loading ? (
+                      {loading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
                         "Sign up"

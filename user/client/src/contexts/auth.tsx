@@ -8,9 +8,11 @@ export interface User {
   name: string;
   language: string;
   avatar?: { id?: string; url?: string } | null;
+  plan: string;
 }
 
 interface AuthContextType {
+  axios: typeof axios;
   server: string;
   decodeUser: () => User | null;
   user: User | null;
@@ -27,7 +29,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-  const server = `${import.meta.env.VITE_SERVER}/auth`;
+  const server = `${import.meta.env.VITE_SERVER}`;
+
+  axios.defaults.withCredentials = true; // ✅ send cookies by default
+  axios.defaults.baseURL = server;
 
   // On mount, get user from local storage
   useEffect(() => {
@@ -65,10 +70,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signOut = async () => {
     setLoading(true);
-    axios.defaults.withCredentials = true;
 
     try {
-      const { data } = await axios.post(`${server}/sign-out`);
+      const { data } = await axios.post("auth/sign-out");
       if (data.success) {
         setUser(null);
         localStorage.removeItem("merchant");
@@ -85,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const value: AuthContextType = {
+    axios,
     server,
     decodeUser,
     user,
