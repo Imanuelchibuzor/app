@@ -1,4 +1,3 @@
-// server/src/services/imagekit.ts
 import ImageKit from "imagekit";
 import AppError from "../configs/error";
 

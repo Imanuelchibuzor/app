@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import {
   Bell,
-  ChartColumnIncreasing,
   House,
   Library,
   LogOut,
@@ -27,9 +26,8 @@ import { useAuth } from "@/contexts/auth";
 import { Badge } from "@/components/ui/badge";
 
 const Sidebar = () => {
-  const auth = useAuth();
-  const user = auth.user;
-  const merchant = true;
+  const {user, signOut} = useAuth();
+  const merchant = user?.plan;
 
   const navItems = [
     { path: "/", icon: <House className="size-5" />, label: "Home" },
@@ -37,11 +35,6 @@ const Sidebar = () => {
       path: "/library",
       icon: <Library className="size-5" />,
       label: "Library",
-    },
-    !merchant && {
-      path: "/merchant",
-      icon: <ChartColumnIncreasing className="size-5" />,
-      label: "Become a Merchant",
     },
     merchant && {
       path: "/notification",
@@ -74,7 +67,7 @@ const Sidebar = () => {
       </SheetTrigger>
       <SheetContent side="left">
         <SheetHeader>
-          <SheetTitle>{auth.user?.email}</SheetTitle>
+          <SheetTitle>{user?.email}</SheetTitle>
         </SheetHeader>
         {user && (
           <>
@@ -119,7 +112,7 @@ const Sidebar = () => {
         </div>
         <SheetFooter>
           <SheetClose asChild>
-            <Button variant="outline" onClick={auth.signOut}>
+            <Button variant="outline" onClick={signOut}>
               <LogOut /> Logout
             </Button>
           </SheetClose>
