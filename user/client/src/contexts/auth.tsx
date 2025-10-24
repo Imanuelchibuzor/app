@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 
@@ -14,7 +15,9 @@ export interface User {
 interface AuthContextType {
   axios: typeof axios;
   server: string;
+  authChecked: boolean;
   decodeUser: () => User | null;
+  checkUser: () => void;
   user: User | null;
   setUser: (u: User | null) => void;
   loading: boolean;
@@ -27,10 +30,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const server = `${import.meta.env.VITE_SERVER}`;
 
+  // Configure axios
   axios.defaults.withCredentials = true; // ✅ send cookies by default
   axios.defaults.baseURL = server;
 
@@ -47,10 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   // Persist user/token to localStorage
   useEffect(() => {
     try {
-      if (user) localStorage.setItem("user", JSON.stringify(user));
-      else localStorage.removeItem("user");
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      } else localStorage.removeItem("user");
     } catch (e) {
       console.warn("Auth persist failed", e);
+    } finally {
+      setAuthChecked(true);
     }
   }, [user]);
 
@@ -66,6 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch {
       return null;
     }
+  };
+
+  const checkUser = () => {
+    if (!authChecked) return;
+
+    if (!user) navigate("/");
   };
 
   const signOut = async () => {
@@ -91,7 +108,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: AuthContextType = {
     axios,
     server,
+    authChecked,
     decodeUser,
+    checkUser,
     user,
     setUser,
     loading,

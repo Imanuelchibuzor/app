@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 import { User, PendingUser } from "../../models/user";
+import Merchant from "../../models/merchant";
 import {
   signUpSchema,
   sendOtpSchema,
@@ -18,11 +19,17 @@ import asyncHandler from "../../utils/asyncHandler";
 import { buildWelcomeEmail, buildResetPasswordEmail } from "./mails";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
-const GOOGLE_REDIRECT_URI = process.env.NODE_ENV === "development" ? process.env.GOOGLE_REDIRECT_URI_DEV : process.env.GOOGLE_REDIRECT_URI as string;
+const GOOGLE_REDIRECT_URI =
+  process.env.NODE_ENV === "development"
+    ? process.env.GOOGLE_REDIRECT_URI_DEV
+    : (process.env.GOOGLE_REDIRECT_URI as string);
 const CLIENT_URL = process.env.CLIENT as string;
 
 if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
-  throw new AppError("Missing Google OAuth env vars", 500, { code: "MISSING_GOOGLE_CONFIG", isOperational: false });
+  throw new AppError("Missing Google OAuth env vars", 500, {
+    code: "MISSING_GOOGLE_CONFIG",
+    isOperational: false,
+  });
 }
 
 const generateOTP = (): number => Math.floor(100000 + Math.random() * 900000);
@@ -48,7 +55,11 @@ const hashPassword = async (password: string): Promise<string> => {
 export const googleRedirect = (req: Request, res: Response): void => {
   const state = randomBytes(12).toString("hex");
   // store state in a short-lived cookie to validate callback (CSRF protection)
-  res.cookie("oauth_state", state, { httpOnly: true, maxAge: 5 * 60 * 1000, sameSite: "lax" });
+  res.cookie("oauth_state", state, {
+    httpOnly: true,
+    maxAge: 5 * 60 * 1000,
+    sameSite: "lax",
+  });
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -63,44 +74,54 @@ export const googleRedirect = (req: Request, res: Response): void => {
   res.redirect(url);
 };
 
-export const googleCallback = asyncHandler(async (req: Request, res: Response) => {
-  const { code, state } = req.query as { code?: string; state?: string };
+export const googleCallback = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { code, state } = req.query as { code?: string; state?: string };
 
-  const cookieState = req.cookies?.oauth_state;
-  // basic state check
-  if (!state || !cookieState || state !== cookieState) {
-    throw new AppError("Invalid OAuth state", 400, { code: "INVALID_OAUTH_STATE" });
+    const cookieState = req.cookies?.oauth_state;
+    // basic state check
+    if (!state || !cookieState || state !== cookieState) {
+      throw new AppError("Invalid OAuth state", 400, {
+        code: "INVALID_OAUTH_STATE",
+      });
+    }
+
+    if (!code)
+      throw new AppError("Missing code in callback", 400, {
+        code: "MISSING_CODE",
+      });
+
+    // authService should exchange code, verify id_token, find-or-create user, return { token, user, redirectUrl? }
+    const result = await authService.handleGoogleCallback(
+      code,
+      GOOGLE_REDIRECT_URI
+    );
+
+    // clear the state cookie
+    res.clearCookie("oauth_state");
+
+    // set auth cookie (HTTP-only) and redirect to client
+    res.cookie("token", result.token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+      domain: isProd ? ".saerv.com" : "localhost",
+    });
+
+    res.cookie("user_preview", result.user, {
+      httpOnly: false, // intentionally readable by JS
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      maxAge: 1 * 60 * 1000,
+      path: "/",
+      domain: isProd ? ".saerv.com" : "localhost",
+    });
+
+    res.redirect(CLIENT_URL);
   }
-
-  if (!code) throw new AppError("Missing code in callback", 400, { code: "MISSING_CODE" });
-
-  // authService should exchange code, verify id_token, find-or-create user, return { token, user, redirectUrl? }
-  const result = await authService.handleGoogleCallback(code, GOOGLE_REDIRECT_URI);
-
-  // clear the state cookie
-  res.clearCookie("oauth_state");
-
-  // set auth cookie (HTTP-only) and redirect to client
-  res.cookie("token", result.token, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: 24 * 60 * 60 * 1000,
-    path: "/",
-    domain: isProd ? ".saerv.com" : "localhost",
-  });
-
-  res.cookie("user_preview", result.user, {
-    httpOnly: false, // intentionally readable by JS
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
-    maxAge: 1 * 60 * 1000,
-    path: "/",
-    domain: isProd ? ".saerv.com" : "localhost",
-  });
-
-  res.redirect(CLIENT_URL);
-});
+);
 
 // Manual Auth
 export const signUp = asyncHandler(async (req: Request, res: Response) => {
@@ -267,6 +288,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
       email: newUser.email,
       language: newUser.language,
       avatar: newUser.avatar,
+      plan: "",
     },
   });
 });
@@ -302,6 +324,9 @@ export const signIn = asyncHandler(async (req: Request, res: Response) => {
     await user.save();
   }
 
+  // Check if user is merchant
+  const merchant = await Merchant.findOne({ user: user._id }).exec();
+
   // Create token
   const key = getJWTSecret();
   const token = jwt.sign({ id: user._id }, key, {
@@ -328,6 +353,7 @@ export const signIn = asyncHandler(async (req: Request, res: Response) => {
       email: user.email,
       language: user.language,
       avatar: user.avatar ?? null,
+      plan: merchant ? merchant.plan : "",
     },
   });
 });
@@ -491,7 +517,10 @@ export const resetPassword = asyncHandler(
 
     await user.save();
 
-    res.status(200).json({ success: true, message: "Password reset successfully. Proceed to sign in." });
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully. Proceed to sign in.",
+    });
   }
 );
 
@@ -504,7 +533,9 @@ export const signOut = (req: Request, res: Response): Response => {
       path: "/",
     });
 
-    return res.status(200).json({ success: true, message: "Logout successful." });
+    return res
+      .status(200)
+      .json({ success: true, message: "Logout successful." });
   } catch (err) {
     return res.status(500).json({ success: false, error: err });
   }

@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth";
+import { Badge } from "@/components/ui/badge";
 
 const Sidebar = () => {
   const auth = useAuth();
@@ -71,7 +72,7 @@ const Sidebar = () => {
           <Menu />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="">
+      <SheetContent side="left">
         <SheetHeader>
           <SheetTitle>{auth.user?.email}</SheetTitle>
         </SheetHeader>
@@ -90,8 +91,13 @@ const Sidebar = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-center">
+            <div className="flex flex-col items-center justify-center">
               <span className="font-medium">Hi, {user.name}!</span>
+              {user.plan && (
+                <Badge variant="outline" className="text-primary/80">
+                  {user.plan}
+                </Badge>
+              )}
             </div>
           </>
         )}
@@ -101,9 +107,10 @@ const Sidebar = () => {
           {navItems.map(({ path, icon, label }) => (
             <SheetClose
               asChild
+              key={path}
               className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-in-out hover:bg-primary/30"
             >
-              <Link key={path} to={path}>
+              <Link to={path}>
                 {icon}
                 <span>{label}</span>
               </Link>

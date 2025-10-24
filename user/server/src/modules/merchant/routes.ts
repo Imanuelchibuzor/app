@@ -37,9 +37,9 @@ router.post(
   verifyPremiumSubscription,
 );
 
-router.get("/fetch-account", getToken, fetchAccount);
-
 router.get("/list-banks", getToken, listBanks);
+
+router.get("/fetch-account", getToken, fetchAccount);
 
 router.post("/verify-account", getToken, verifyAccount);
 

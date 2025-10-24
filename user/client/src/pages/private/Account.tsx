@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import {
   CreditCard,
   User,
@@ -8,6 +9,7 @@ import {
   AlertCircle,
   Landmark,
   CircleCheck,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,78 +43,103 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth";
+import { AxiosError } from "axios";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock Nigerian banks data
-const NIGERIAN_BANKS = [
-  { code: "044", name: "Access Bank" },
-  { code: "063", name: "Access Bank (Diamond)" },
-  { code: "050", name: "Ecobank Nigeria" },
-  { code: "070", name: "Fidelity Bank" },
-  { code: "011", name: "First Bank of Nigeria" },
-  { code: "214", name: "First City Monument Bank" },
-  { code: "058", name: "Guaranty Trust Bank" },
-  { code: "030", name: "Heritage Bank" },
-  { code: "301", name: "Jaiz Bank" },
-  { code: "082", name: "Keystone Bank" },
-  { code: "526", name: "Parallex Bank" },
-  { code: "076", name: "Polaris Bank" },
-  { code: "101", name: "Providus Bank" },
-  { code: "221", name: "Stanbic IBTC Bank" },
-  { code: "068", name: "Standard Chartered Bank" },
-  { code: "232", name: "Sterling Bank" },
-  { code: "100", name: "Suntrust Bank" },
-  { code: "032", name: "Union Bank of Nigeria" },
-  { code: "033", name: "United Bank For Africa" },
-  { code: "215", name: "Unity Bank" },
-  { code: "035", name: "Wema Bank" },
-  { code: "057", name: "Zenith Bank" },
-];
+type BankAccount = {
+  code: string;
+  name: string;
+  number: string;
+};
 
-interface BankAccount {
-  bankName: string;
-  bankCode: string;
-  accountNumber: string;
-  accountName: string;
-}
+type Bank = {
+  code: string;
+  name: string;
+};
 
 export default function AccountPage() {
-  // Mock user account data - replace with actual data fetching
-  const [userAccount, setUserAccount] = useState<BankAccount | null>();
-  //   {
-  //   bankName: "Guaranty Trust Bank",
-  //   bankCode: "058",
-  //   accountNumber: "0123456789",
-  //   accountName: "John Doe",
-  // }
+  const { axios, checkUser } = useAuth();
 
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [userAccount, setUserAccount] = useState<BankAccount | null>();
+  const [fetching, setFetching] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [openBankSelect, setOpenBankSelect] = useState(false);
 
   // Edit form state
-  const [selectedBank, setSelectedBank] = useState<{
-    code: string;
-    name: string;
-  } | null>(null);
+  const [selectedBank, setSelectedBank] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [isValidating, setIsValidating] = useState(false);
+  const [verifiedAccount, setVerifiedAccount] = useState(null);
   const [validationStatus, setValidationStatus] = useState<
     "valid" | "invalid" | null
   >(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    checkUser();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      setFetching(true);
+
+      try {
+        const { data } = await axios.get("/merchant/list-banks");
+        setBanks(data.banks);
+      } catch (err) {
+        let message = "Something went wrong. Please try again.";
+        if (err instanceof AxiosError && err.response) {
+          message = err.response.data.message || err.response.data.errors;
+        }
+        toast.error(message);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchBanks();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    const fetchAccount = async () => {
+      setFetching(true);
+
+      try {
+        const { data } = await axios.get("/merchant/fetch-account");
+
+        if (data.success) setUserAccount(data.account);
+        else toast.error(data.message);
+      } catch (err) {
+        let message = "Something went wrong. Please try again.";
+        if (err instanceof AxiosError && err.response) {
+          message = err.response.data.message || err.response.data.errors;
+        }
+        toast.error(message);
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchAccount();
+    // eslint-disable-next-line
+  }, []);
 
   const handleEditClick = () => {
     // Pre-fill form with existing data
     if (userAccount) {
-      setSelectedBank({
-        code: userAccount.bankCode,
-        name: userAccount.bankName,
-      });
-      setAccountNumber(userAccount.accountNumber);
-      setAccountName(userAccount.accountName);
+      setSelectedBank(userAccount.code);
+      setAccountNumber(userAccount.number);
+      setAccountName(userAccount.name);
       setValidationStatus("valid");
     } else {
-      setSelectedBank(null);
+      setSelectedBank("");
       setAccountNumber("");
       setAccountName("");
       setValidationStatus(null);
@@ -123,8 +150,8 @@ export default function AccountPage() {
   const handleCloseEdit = () => {
     // Check if there are unsaved changes
     const hasChanges =
-      selectedBank?.name !== userAccount?.bankName ||
-      accountNumber !== (userAccount?.accountNumber || "");
+      selectedBank !== userAccount?.code ||
+      accountNumber !== (userAccount?.number || "");
 
     if (hasChanges) {
       setShowDiscardDialog(true);
@@ -136,7 +163,7 @@ export default function AccountPage() {
   const handleDiscard = () => {
     setShowDiscardDialog(false);
     setIsEditing(false);
-    setSelectedBank(null);
+    setSelectedBank("");
     setAccountNumber("");
     setAccountName("");
     setValidationStatus(null);
@@ -146,59 +173,70 @@ export default function AccountPage() {
     setShowDiscardDialog(false);
   };
 
-  const validateAccount = async (accNumber: string, bankCode: string) => {
-    if (accNumber.length !== 10 || !bankCode) return;
-
+  const verifyAccount = async (number: string, code: string) => {
+    if (number.length !== 10 || !code) return;
     setIsValidating(true);
-    setValidationStatus(null);
 
-    // Simulate API call to validate account
-    // Replace with actual API call to your backend
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Mock validation - in production, call your backend API
-    const isValid = Math.random() > 0.3; // 70% success rate for demo
-
-    if (isValid) {
-      setAccountName("John Doe"); // Replace with actual account name from API
-      setValidationStatus("valid");
-    } else {
-      setAccountName("");
-      setValidationStatus("invalid");
+    try {
+      const { data } = await axios.post("/merchant/verify-account", {
+        number,
+        code,
+      });
+      if (data.success) {
+        setVerifiedAccount(data.info);
+        setValidationStatus("valid");
+      } else {
+        setVerifiedAccount(null);
+        setValidationStatus("invalid");
+      }
+    } catch (err) {
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
+      setIsValidating(false);
     }
-
-    setIsValidating(false);
   };
 
   const handleAccountNumberChange = (value: string) => {
     // Only allow digits and max 10 characters
     const sanitized = value.replace(/\D/g, "").slice(0, 10);
     setAccountNumber(sanitized);
-    setValidationStatus(null);
     setAccountName("");
 
     // Trigger validation when 10 digits are entered
     if (sanitized.length === 10 && selectedBank) {
-      validateAccount(sanitized, selectedBank.code);
+      verifyAccount(sanitized, selectedBank);
     }
   };
 
-  const handleSaveAccount = () => {
-    if (!selectedBank || !accountNumber || validationStatus !== "valid") return;
+  const handleSaveAccount = async () => {
+    if (!verifiedAccount) return;
+    setIsSaving(true);
 
-    // Save account information
-    const newAccount: BankAccount = {
-      bankName: selectedBank.name,
-      bankCode: selectedBank.code,
-      accountNumber,
-      accountName,
-    };
+    try {
+      const { data } = await axios.post("/merchant/save-account", {
+        code: selectedBank,
+        number: accountNumber,
+      });
 
-    setUserAccount(newAccount);
-    setIsEditing(false);
-
-    // Here you would typically make an API call to save the account
-    console.log("[v0] Saving account:", newAccount);
+      if (data.success) {
+        setUserAccount(data.account);
+        setIsEditing(false);
+        setVerifiedAccount(null);
+        toast.success(data.message);
+      } else toast.error(data.message);
+    } catch (err) {
+      let message = "Something went wrong. Please try again.";
+      if (err instanceof AxiosError && err.response) {
+        message = err.response.data.message || err.response.data.errors;
+      }
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (isEditing) {
@@ -238,7 +276,8 @@ export default function AccountPage() {
                     {selectedBank ? (
                       <span className="flex items-center gap-2">
                         <Landmark className="h-4 w-4" />
-                        {selectedBank.name}
+                        {banks.find((bank) => bank?.code === selectedBank)
+                          ?.name || ""}
                       </span>
                     ) : (
                       <span className="text-muted-foreground">
@@ -253,23 +292,23 @@ export default function AccountPage() {
                     <CommandList>
                       <CommandEmpty>No bank found.</CommandEmpty>
                       <CommandGroup>
-                        {NIGERIAN_BANKS.map((bank) => (
+                        {banks.map((bank) => (
                           <CommandItem
-                            key={bank.code}
+                            key={bank.name}
                             value={bank.name}
                             onSelect={() => {
-                              setSelectedBank(bank);
+                              setSelectedBank(bank.code);
                               setOpenBankSelect(false);
                               // Re-validate if account number is already 10 digits
                               if (accountNumber.length === 10) {
-                                validateAccount(accountNumber, bank.code);
+                                verifyAccount(accountNumber, bank.code);
                               }
                             }}
                           >
                             <Check
                               className={cn(
                                 "mr-2 h-4 w-4",
-                                selectedBank?.code === bank.code
+                                selectedBank === bank.code
                                   ? "opacity-100"
                                   : "opacity-0"
                               )}
@@ -303,7 +342,7 @@ export default function AccountPage() {
 
             {/* Account Validation Status */}
             {isValidating && (
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 p-3">
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 p-3 ">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 <span className="text-sm text-muted-foreground">
                   Validating account...
@@ -314,28 +353,18 @@ export default function AccountPage() {
             {validationStatus === "valid" && accountName && (
               <div className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 p-3">
                 <CircleCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-green-700 dark:text-green-300">
-                    Account verified
-                  </p>
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    {accountName}
-                  </p>
-                </div>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  {accountName}
+                </p>
               </div>
             )}
 
             {validationStatus === "invalid" && (
               <div className="flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 p-3">
                 <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-700 dark:text-red-300">
-                    Account not found
-                  </p>
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    Please check the account number and try again
-                  </p>
-                </div>
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                  Account not found
+                </p>
               </div>
             )}
 
@@ -346,11 +375,18 @@ export default function AccountPage() {
                 !selectedBank ||
                 accountNumber.length !== 10 ||
                 validationStatus !== "valid" ||
-                isValidating
+                isValidating ||
+                isSaving
               }
               className="w-full"
             >
-              {userAccount ? "Update Account" : "Add Account"}
+              {isSaving ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : userAccount ? (
+                "Update Account"
+              ) : (
+                "Add Account"
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -387,80 +423,80 @@ export default function AccountPage() {
             Manage your bank account information for receiving payments
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {userAccount ? (
-            <>
+        {fetching && <Skeleton className="h-60 w-full" />}
+        {!fetching && (
+          <CardContent className="space-y-6">
+            {userAccount ? (
+              <>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <Landmark className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 space-y-1 font-medium">
+                      <p className="text-sm  text-muted-foreground">
+                        Bank Name
+                      </p>
+                      <p className="text-base">
+                        {banks.find((bank) => bank?.code === userAccount.code)
+                          ?.name || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <User className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 space-y-1 font-medium">
+                      <p className="text-sm text-muted-foreground">
+                        Account Name
+                      </p>
+                      <p className="text-base">{userAccount.name || "N/A"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <CreditCard className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 space-y-1 font-medium">
+                      <p className="text-sm text-muted-foreground">
+                        Account Number
+                      </p>
+                      <p className="text-base">{userAccount.number || "N/A"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Button onClick={handleEditClick} className="w-full">
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  Edit Account
+                </Button>
+              </>
+            ) : (
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Landmark className="h-5 w-5 text-primary" />
+                <div className="rounded-lg border border-dashed border-border bg-muted/50 p-8 text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Landmark className="h-6 w-6 text-muted-foreground" />
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Bank Name
-                    </p>
-                    <p className="text-base font-semibold">
-                      {userAccount.bankName}
-                    </p>
-                  </div>
+                  <h3 className="mb-2 text-lg font-semibold">
+                    No bank account set
+                  </h3>
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    Add your bank account information to start receiving
+                    withdrawals
+                  </p>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <User className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Account Name
-                    </p>
-                    <p className="text-base font-semibold">
-                      {userAccount.accountName}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Account Number
-                    </p>
-                    <p className="font-mono text-base font-semibold">
-                      {userAccount.accountNumber}
-                    </p>
-                  </div>
-                </div>
+                <Button onClick={handleEditClick} className="w-full">
+                  <Edit2 className="mr-2 h-4 w-4" />
+                  Add Bank Account
+                </Button>
               </div>
-
-              <Button onClick={handleEditClick} className="w-full">
-                <Edit2 className="mr-2 h-4 w-4" />
-                Edit Account
-              </Button>
-            </>
-          ) : (
-            <div className="space-y-4">
-              <div className="rounded-lg border border-dashed border-border bg-muted/50 p-8 text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <Landmark className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold">
-                  No bank account set
-                </h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Add your bank account information to start receiving
-                  withdrawals
-                </p>
-              </div>
-
-              <Button onClick={handleEditClick} className="w-full">
-                <Edit2 className="mr-2 h-4 w-4" />
-                Add Bank Account
-              </Button>
-            </div>
-          )}
-        </CardContent>
+            )}
+          </CardContent>
+        )}
       </Card>
     </div>
   );

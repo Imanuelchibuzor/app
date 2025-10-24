@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { User, UserDocument } from "../../models/user";
+import Merchant from "../../models/merchant";
 import AppError from "../../configs/error";
 
 type SafeUser = {
@@ -12,6 +13,7 @@ type SafeUser = {
   email: string;
   language?: string;
   avatar?: { id?: string; url?: string } | null;
+  plan?: string;
 };
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -39,14 +41,18 @@ function createToken(user: UserDocument): string {
   });
 }
 
-// Convert mongoose user doc to a safe payload for response
-function toSafeUser(user: UserDocument): SafeUser {
+// Convert mongoose user doc to a
+// safe payload for response
+async function toSafeUser(user: UserDocument): Promise<SafeUser> {
+  const merchant: any = await Merchant.findOne({ user: user._id }).exec();
+
   return {
-    id: user._id as string,
+    id: String(user._id),
     name: user.name,
     email: user.email,
     language: user.language,
     avatar: user.avatar ?? null,
+    plan: merchant ? merchant.plan : "",
   };
 }
 
@@ -142,7 +148,10 @@ export async function handleGoogleCallback(
   const profile = await exchangeCodeAndVerify(code, redirectUri);
   const user = await findOrCreateUserFromGoogle(profile);
   const token = createToken(user);
-  const safeUser = JSON.stringify(toSafeUser(user));
+
+  // Await the async conversion
+  const safeUserObj = await toSafeUser(user);
+  const safeUser = JSON.stringify(safeUserObj);
 
   return { token, user: safeUser };
 }
