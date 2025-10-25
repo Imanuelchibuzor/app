@@ -74,10 +74,9 @@ export default function AccountPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [isValidating, setIsValidating] = useState(false);
-  const [verifiedAccount, setVerifiedAccount] = useState(null);
-  const [validationStatus, setValidationStatus] = useState<
-    "valid" | "invalid" | null
-  >(null);
+  // const [verifiedAccount, setVerifiedAccount] = useState(null);
+  const [validated, setValidated] = useState(false);
+  const [notValidated, setNotvalidated] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -137,12 +136,12 @@ export default function AccountPage() {
       setSelectedBank(userAccount.code);
       setAccountNumber(userAccount.number);
       setAccountName(userAccount.name);
-      setValidationStatus("valid");
+      setValidated(true);
     } else {
       setSelectedBank("");
       setAccountNumber("");
       setAccountName("");
-      setValidationStatus(null);
+      setValidated(false);
     }
     setIsEditing(true);
   };
@@ -166,7 +165,7 @@ export default function AccountPage() {
     setSelectedBank("");
     setAccountNumber("");
     setAccountName("");
-    setValidationStatus(null);
+    setValidated(false);
   };
 
   const handleContinue = () => {
@@ -183,11 +182,10 @@ export default function AccountPage() {
         code,
       });
       if (data.success) {
-        setVerifiedAccount(data.info);
-        setValidationStatus("valid");
+        setValidated(true);
+        setAccountName(data.info.name)
       } else {
-        setVerifiedAccount(null);
-        setValidationStatus("invalid");
+        setNotvalidated(true)
       }
     } catch (err) {
       let message = "Something went wrong. Please try again.";
@@ -213,7 +211,7 @@ export default function AccountPage() {
   };
 
   const handleSaveAccount = async () => {
-    if (!verifiedAccount) return;
+    if (!validated) return;
     setIsSaving(true);
 
     try {
@@ -225,7 +223,6 @@ export default function AccountPage() {
       if (data.success) {
         setUserAccount(data.account);
         setIsEditing(false);
-        setVerifiedAccount(null);
         toast.success(data.message);
       } else toast.error(data.message);
     } catch (err) {
@@ -350,7 +347,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {validationStatus === "valid" && accountName && (
+            {validated && accountName && (
               <div className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 p-3">
                 <CircleCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
                 <p className="text-sm text-green-600 dark:text-green-400">
@@ -359,7 +356,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {validationStatus === "invalid" && (
+            {notValidated && (
               <div className="flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 p-3">
                 <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
                 <p className="text-sm font-medium text-red-700 dark:text-red-300">
@@ -374,8 +371,8 @@ export default function AccountPage() {
               disabled={
                 !selectedBank ||
                 accountNumber.length !== 10 ||
-                validationStatus !== "valid" ||
                 isValidating ||
+                notValidated ||
                 isSaving
               }
               className="w-full"

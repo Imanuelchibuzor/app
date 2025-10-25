@@ -70,6 +70,6 @@ const MerchantSchema: Schema<MerchantDocument> = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Merchant = mongoose.model<MerchantDocument>("Merchant", MerchantSchema);
-export default Merchant;
+export const Merchant = mongoose.model<MerchantDocument>("Merchant", MerchantSchema);
+
 

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import axios from "axios";
 
-import Merchant from "../../models/merchant";
+import AppError from "../../configs/error";
+import { Merchant } from "../../models/merchant";
 import asyncHandler from "../../utils/asyncHandler";
 import { validateUser } from "../../utils/validateUser";
-import AppError from "../../configs/error";
+import { validateMerchant } from "../../utils/validateMerchant";
 import { verifySubscriptionSchema, accountSchema } from "./validation";
 
 const paystack = axios.create({
@@ -268,6 +269,8 @@ export const verifyAccount = asyncHandler(
 
 export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = await validateUser(req);
+  const merchant = await validateMerchant(userId);
+  
   const parseResult = accountSchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({
@@ -276,13 +279,6 @@ export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
     });
   }
   const { number, code } = parseResult.data;
-
-  const merchant = await Merchant.findOne({ user: userId }).exec();
-  if (!merchant) {
-    throw new AppError("Merchant not found", 404, {
-      code: "MERCHANT_NOT_FOUND",
-    });
-  }
 
   // Verify account
   const { data: rd } = await paystack.get("/bank/resolve", {

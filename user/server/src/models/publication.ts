@@ -6,7 +6,7 @@ export interface IPublication {
   author: string;
   language: string;
   category: string;
-  pages: string;
+  pages: Number;
   description: string;
   isRegistered: boolean;
   hasExplicitContent: boolean;
@@ -42,7 +42,7 @@ const PublicationSchema: Schema<PublicationDocument> = new mongoose.Schema(
     author: { type: String, required: true },
     language: { type: String, required: true, index: true },
     category: { type: String, required: true, index: true },
-    pages: { type: String, required: true },
+    pages: { type: Number, required: true },
     description: { type: String, required: true },
     isRegistered: { type: Boolean, required: true, default: false },
     hasExplicitContent: { type: Boolean, required: true },
@@ -54,14 +54,14 @@ const PublicationSchema: Schema<PublicationDocument> = new mongoose.Schema(
       id: { type: String, required: true },
       url: { type: String, required: true },
     },
-    price: { type: Number, required: true },
+    price: { type: Number, required: true, index: true },
     discount: { type: Number, default: 0 },
     enableDownloads: { type: Boolean, required: true, index: true },
     enableAffiliates: { type: Boolean, required: true, index: true },
     affiliateCommission: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: ["pending", "active", "paused"],
+      enum: ["pending", "approved", "paused"],
       default: "pending",
       index: true,
     },

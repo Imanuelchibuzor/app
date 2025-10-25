@@ -1,8 +1,4 @@
 import { GoogleGenAI } from "@google/genai";
-import pdf from "pdf-parse";
-
-import asyncHandler from "../../utils/asyncHandler";
-import { Request, Response } from "express";
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL = "gemini-2.5-flash";
@@ -88,97 +84,187 @@ function promiseTextFromResponse(response: any) {
   return typeof response === "string" ? response : JSON.stringify(response);
 }
 
-export const reviewContent = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { title, author, pages, description } = req.body;
-    const prompt = generatePrompt({ title, author, pages, description });
+// export const reviewContent = asyncHandler(
+//   async (req: Request, res: Response) => {
+//     const { title, author, pages, description } = req.body;
+//     const prompt = generatePrompt({ title, author, pages, description });
 
-    const files = req.files as
-      | { [field: string]: Express.Multer.File[] }
-      | undefined;
-    if (!files?.file?.length || !files?.cover?.length) {
-      return res.status(400).json({ error: "No PDF or cover image provided." });
-    }
+//     const files = req.files as
+//       | { [field: string]: Express.Multer.File[] }
+//       | undefined;
+//     if (!files?.file?.length || !files?.cover?.length) {
+//       return res.status(400).json({ error: "No PDF or cover image provided." });
+//     }
 
-    const pdfFile = files.file[0];
-    const imageFile = files.cover[0];
+//     const pdfFile = files.file[0];
+//     const imageFile = files.cover[0];
 
-    const pdf_buffer = pdfFile.buffer;
-    const pdf_mimetype = pdfFile.mimetype;
-    const pdf_size = pdfFile.size;
+//     const pdf_buffer = pdfFile.buffer;
+//     const pdf_mimetype = pdfFile.mimetype;
+//     const pdf_size = pdfFile.size;
 
-    const image_buffer = imageFile.buffer;
-    const image_mimetype = imageFile.mimetype;
-    const image_size = imageFile.size;
+//     const image_buffer = imageFile.buffer;
+//     const image_mimetype = imageFile.mimetype;
+//     const image_size = imageFile.size;
 
-    if (!pdf_mimetype?.startsWith?.("application/pdf")) {
-      return res.status(400).json({ error: "Uploaded file is not a PDF." });
-    }
+//     if (!pdf_mimetype?.startsWith?.("application/pdf")) {
+//       return res.status(400).json({ error: "Uploaded file is not a PDF." });
+//     }
 
-    if (!image_mimetype?.startsWith?.("image/")) {
-      return res.status(400).json({ error: "Uploaded file is not an image." });
-    }
-    const MAX_BYTES = 10 * 1024 * 1024;
-    if (pdf_size > MAX_BYTES || image_size > MAX_BYTES) {
-      return res.status(413).json({ error: "PDF or image file is too large." });
-    }
+//     if (!image_mimetype?.startsWith?.("image/")) {
+//       return res.status(400).json({ error: "Uploaded file is not an image." });
+//     }
+//     const MAX_BYTES = 10 * 1024 * 1024;
+//     if (pdf_size > MAX_BYTES || image_size > MAX_BYTES) {
+//       return res.status(413).json({ error: "PDF or image file is too large." });
+//     }
 
-    try {
-      // Prepare the files for Gemini
-      const imagePart = bufferToGenerativePart(image_buffer, image_mimetype);
-      const pdfPart = bufferToGenerativePart(pdf_buffer, pdf_mimetype);
+//     try {
+//       // Prepare the files for Gemini
+//       const imagePart = bufferToGenerativePart(image_buffer, image_mimetype);
+//       const pdfPart = bufferToGenerativePart(pdf_buffer, pdf_mimetype);
 
-      // Build model call payload
-      const modelInput = {
-        model: MODEL,
-        contents: [prompt, pdfPart, imagePart],
-      };
+//       // Build model call payload
+//       const modelInput = {
+//         model: MODEL,
+//         contents: [prompt, pdfPart, imagePart],
+//       };
 
-      // Call Gemini
-      const response = await ai.models.generateContent(modelInput);
+//       // Call Gemini
+//       const response = await ai.models.generateContent(modelInput);
 
-      // Extract text from the sdk response defensively
-      let textOut = promiseTextFromResponse(response);
+//       // Extract text from the sdk response defensively
+//       let textOut = promiseTextFromResponse(response);
 
-      // Try parse JSON (strict), then fallback extraction
-      const parsed = extractJsonFromString(textOut);
-      if (!parsed || typeof parsed !== "object") {
-        console.error(
-          "Failed to parse JSON from Gemini response. Raw output:",
-          textOut
-        );
-        return res.status(500).json({
-          error: "Failed to parse Gemini's JSON response.",
-          geminiRawResponse: textOut,
-        });
-      }
+//       // Try parse JSON (strict), then fallback extraction
+//       const parsed = extractJsonFromString(textOut);
+//       if (!parsed || typeof parsed !== "object") {
+//         console.error(
+//           "Failed to parse JSON from Gemini response. Raw output:",
+//           textOut
+//         );
+//         return res.status(500).json({
+//           error: "Failed to parse Gemini's JSON response.",
+//           geminiRawResponse: textOut,
+//         });
+//       }
 
-      // Validate required keys
-      const status =
-        parsed.status && typeof parsed.status === "string"
-          ? parsed.status.trim()
-          : null;
-      const reason =
-        parsed.reason && typeof parsed.reason === "string"
-          ? parsed.reason.trim()
-          : null;
+//       // Validate required keys
+//       const status =
+//         parsed.status && typeof parsed.status === "string"
+//           ? parsed.status.trim()
+//           : null;
+//       const reason =
+//         parsed.reason && typeof parsed.reason === "string"
+//           ? parsed.reason.trim()
+//           : null;
 
-      if (!status) {
-        return res.status(500).json({
-          error:
-            "Gemini returned JSON but required keys are missing or invalid.",
-          geminiJson: parsed,
-        });
-      }
+//       if (!status) {
+//         return res.status(500).json({
+//           error:
+//             "Gemini returned JSON but required keys are missing or invalid.",
+//           geminiJson: parsed,
+//         });
+//       }
 
-      // Return the title and description
-      return res.json({ status, reason });
-    } catch (err) {
-      console.error("Error reviewing content:", err);
-      return res.status(500).json({
-        error: "Failed to analyze content.",
-        details: err,
-      });
-    }
+//       // Return the title and description
+//       return res.json({ status, reason });
+//     } catch (err) {
+//       console.error("Error reviewing content:", err);
+//       return res.status(500).json({
+//         error: "Failed to analyze content.",
+//         details: err,
+//       });
+//     }
+//   }
+// );
+
+export const reviewPublication = async (info: Info, files: any) => {
+  const { title, author, pages, description } = info;
+  const prompt = generatePrompt({ title, author, pages, description });
+
+  if (!files?.file?.length || !files?.cover?.length) {
+    return { error: "No PDF or cover image provided." };
   }
-);
+
+  const pdfFile = files.file[0];
+  const imageFile = files.cover[0];
+
+  const pdf_buffer = pdfFile.buffer;
+  const pdf_mimetype = pdfFile.mimetype;
+  const pdf_size = pdfFile.size;
+
+  const image_buffer = imageFile.buffer;
+  const image_mimetype = imageFile.mimetype;
+  const image_size = imageFile.size;
+
+  if (!pdf_mimetype?.startsWith?.("application/pdf")) {
+    return { error: "Uploaded file is not a PDF." };
+  }
+
+  if (!image_mimetype?.startsWith?.("image/")) {
+    return { error: "Uploaded file is not an image." };
+  }
+
+  const MAX_BYTES = 10 * 1024 * 1024;
+  if (pdf_size > MAX_BYTES || image_size > MAX_BYTES) {
+    return { error: "PDF or image file is too large." };
+  }
+
+  try {
+    // Prepare the files for Gemini
+    const imagePart = bufferToGenerativePart(image_buffer, image_mimetype);
+    const pdfPart = bufferToGenerativePart(pdf_buffer, pdf_mimetype);
+
+    // Build model call payload
+    const modelInput = {
+      model: MODEL,
+      contents: [prompt, pdfPart, imagePart],
+    };
+
+    // Call Gemini
+    const response = await ai.models.generateContent(modelInput);
+
+    // Extract text from the sdk response defensively
+    let textOut = promiseTextFromResponse(response);
+
+    // Try parse JSON (strict), then fallback extraction
+    const parsed = extractJsonFromString(textOut);
+    if (!parsed || typeof parsed !== "object") {
+      console.error(
+        "Failed to parse JSON from Gemini response. Raw output:",
+        textOut
+      );
+      return {
+        error: "Failed to parse Gemini's JSON response.",
+        geminiRawResponse: textOut,
+      };
+    }
+
+    // Validate required keys
+    const status =
+      parsed.status && typeof parsed.status === "string"
+        ? parsed.status.trim()
+        : null;
+    const reason =
+      parsed.reason && typeof parsed.reason === "string"
+        ? parsed.reason.trim()
+        : null;
+
+    if (!status) {
+      return {
+        error: "Gemini returned JSON but required keys are missing or invalid.",
+        geminiJson: parsed,
+      };
+    }
+
+    // Return the title and description
+    return { status, reason };
+  } catch (err) {
+    console.error("Error reviewing publication:", err);
+    return {
+      error: "Failed to analyze publication.",
+      details: err,
+    };
+  }
+};

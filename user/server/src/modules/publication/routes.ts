@@ -1,19 +1,19 @@
 import { Router } from "express";
 
-import upload from "../../middlewares/upload";
 import getToken from "../../middlewares/auth";
-import { reviewContent } from "./services";
-import {} from "./controllers";
+import upload from "../../middlewares/upload";
+import { addProduct } from "./controllers";
 
 const router = Router();
 
 router.post(
-  "/review",
+  "/add-product",
+  getToken,
   upload.fields([
     { name: "file", maxCount: 1 },
     { name: "cover", maxCount: 1 },
   ]),
-  reviewContent
+  addProduct
 );
 
 export default router;
