@@ -22,11 +22,13 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/auth";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth";
+import { useApp } from "@/contexts/app";
 
 const Sidebar = () => {
-  const {user, signOut} = useAuth();
+  const { user, signOut } = useAuth();
+  const { unread } = useApp();
   const merchant = user?.plan;
 
   const navItems = [
@@ -38,7 +40,7 @@ const Sidebar = () => {
     },
     merchant && {
       path: "/notification",
-      icon: <Bell className="size-5" />,
+      icon: <Bell className={`size-5 ${unread ? "animate-bounce text-green-500" : ""}`} />, 
       label: "Notification",
     },
     merchant && {

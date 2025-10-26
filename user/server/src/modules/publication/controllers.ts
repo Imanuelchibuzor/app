@@ -9,12 +9,14 @@ import { validateMerchant } from "../../utils/validateMerchant";
 import { reviewPublication } from "./services";
 import imagekit from "../../configs/imageKit";
 import uploadProductFile from "../../utils/uploadPublication";
+import { buildProductApprovedNotification } from "./notifications";
+import { Notification } from "../../models/notification";
 
 const STARTER_LIMIT = 5;
 const PRO_LIMIT = 25;
 
 export const addProduct = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = await validateUser(req);
+  const { user, userId } = await validateUser(req);
   const merchant = await validateMerchant(userId);
 
   const parseResult = addPublicationSchema.safeParse(req.body);
@@ -141,10 +143,16 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
     status: "approved",
   });
 
-  res
-    .status(201)
-    .json({
-      success: true,
-      message: "Publication has been added successfully",
-    });
+  // Send notification
+  const message = buildProductApprovedNotification(user.name, title);
+  await Notification.create({
+    user: userId,
+    subject: `Publication Approved: ${title}`,
+    message,
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Publication has been added successfully",
+  });
 });

@@ -43,16 +43,16 @@ const MerchantSchema: Schema<MerchantDocument> = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: [ "active", "cancelled"],
+      enum: ["active", "cancelled"],
       default: "active",
       index: true,
     },
-    subscriptionId: {
-      type: String,
-      trim: true,
-      default: "",
-      index: true,
-    },
+    // subscriptionId: {
+    //   type: String,
+    //   trim: true,
+    //   default: "",
+    //   index: true,
+    // },
 
     // Wallet info
     totalEarnings: { type: Number, default: 0 },
@@ -70,6 +70,7 @@ const MerchantSchema: Schema<MerchantDocument> = new mongoose.Schema(
   { timestamps: true }
 );
 
-export const Merchant = mongoose.model<MerchantDocument>("Merchant", MerchantSchema);
-
-
+export const Merchant = mongoose.model<MerchantDocument>(
+  "Merchant",
+  MerchantSchema
+);

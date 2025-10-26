@@ -7,6 +7,8 @@ import asyncHandler from "../../utils/asyncHandler";
 import { validateUser } from "../../utils/validateUser";
 import { validateMerchant } from "../../utils/validateMerchant";
 import { verifySubscriptionSchema, accountSchema } from "./validation";
+import { Notification } from "../../models/notification";
+import { buildSubscriptionSuccessfulNotification } from "./notifications";
 
 const paystack = axios.create({
   baseURL: "https://api.paystack.co",
@@ -18,7 +20,7 @@ const PREMIUM_PLAN_AMOUNT = 10000;
 
 export const createStarterMerchant = asyncHandler(
   async (req: Request, res: Response): Promise<Response> => {
-    const { userId } = await validateUser(req);
+    const { user, userId } = await validateUser(req);
 
     // Check if merchant profile already exists
     const existingMerchant = await Merchant.findOne({ user: userId }).exec();
@@ -42,6 +44,25 @@ export const createStarterMerchant = asyncHandler(
     // Create new merchant record
     const merchant = new Merchant({ user: userId });
     await merchant.save();
+
+    // Send notification
+    const features = {
+      a: "Up to 5 publications",
+      b: "Up to 10 promotions",
+      c: "₦2,500",
+      d: "10%",
+      e: "Payout on Fridays",
+    };
+    const message = buildSubscriptionSuccessfulNotification({
+      name: user.name,
+      plan: "Starter",
+      features,
+    });
+    await Notification.create({
+      user: userId,
+      subject: "Starter Subscription Successful",
+      message,
+    });
 
     return res.status(201).json({ success: true, plan: "Starter" });
   }

@@ -10,6 +10,7 @@ import errorMiddleware from "./middlewares/error";
 import authRoutes from "./modules/auth/routes";
 import merchantRoutes from "./modules/merchant/routes";
 import publicationRoutes from "./modules/publication/routes";
+import notificationRoutes from "./modules/notifications/routes";
 
 import { startOtpCleanup, startPendingUserCleanup } from "./modules/auth/jobs";
 
@@ -38,6 +39,7 @@ app.get("/favicon.ico", (_req: Request, res: Response): void => {
 app.use("/auth", authRoutes);
 app.use("/merchant", merchantRoutes);
 app.use("/pub", publicationRoutes);
+app.use("/notification", notificationRoutes);
 
 // Jobs
 startOtpCleanup();

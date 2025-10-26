@@ -118,8 +118,8 @@ const MerchantPage = () => {
       period: "/ month",
       isPopular: false,
       features: [
-        "Add up to 5 products",
-        "Allow up to 10 promoted products",
+        "Add up to 5 publications",
+        "Allow up to 10 promotions",
         "Minimum withdrawal: ₦2,500",
         "Platform fee on withdrawal: 10% (of withdrawn amount)",
         "Payout timeline: every Friday",
@@ -140,8 +140,8 @@ const MerchantPage = () => {
       period: "/ month",
       isPopular: true,
       features: [
-        "Add up to 25 products",
-        "Allow up to 50 promoted products",
+        "Add up to 25 publications",
+        "Allow up to 50 promotions",
         "Minimum withdrawal: ₦1,000",
         "Platform fee on withdrawal: 10% (of withdrawn amount)",
         "Payout timeline: instant (within minutes)",
@@ -162,7 +162,7 @@ const MerchantPage = () => {
       period: "/ month",
       isPopular: false,
       features: [
-        "Unlimited product listings",
+        "Unlimited listings",
         "Unlimited promotions",
         "Minimum withdrawal: ₦1,000",
         "Platform fee on withdrawal: 5% (of withdrawn amount)",
