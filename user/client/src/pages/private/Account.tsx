@@ -47,6 +47,7 @@ import { useAuth } from "@/contexts/auth";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import handleError from "@/utils/handleError";
 
 type BankAccount = {
   code: string;
@@ -74,9 +75,9 @@ export default function AccountPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [isValidating, setIsValidating] = useState(false);
-  // const [verifiedAccount, setVerifiedAccount] = useState(null);
-  const [validated, setValidated] = useState(false);
-  const [notValidated, setNotvalidated] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<
+    "valid" | "invalid" | null
+  >(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -92,11 +93,7 @@ export default function AccountPage() {
         const { data } = await axios.get("/merchant/list-banks");
         setBanks(data.banks);
       } catch (err) {
-        let message = "Something went wrong. Please try again.";
-        if (err instanceof AxiosError && err.response) {
-          message = err.response.data.message || err.response.data.errors;
-        }
-        toast.error(message);
+        handleError(err);
       } finally {
         setFetching(false);
       }
@@ -116,11 +113,7 @@ export default function AccountPage() {
         if (data.success) setUserAccount(data.account);
         else toast.error(data.message);
       } catch (err) {
-        let message = "Something went wrong. Please try again.";
-        if (err instanceof AxiosError && err.response) {
-          message = err.response.data.message || err.response.data.errors;
-        }
-        toast.error(message);
+        handleError(err);
       } finally {
         setFetching(false);
       }
@@ -136,12 +129,12 @@ export default function AccountPage() {
       setSelectedBank(userAccount.code);
       setAccountNumber(userAccount.number);
       setAccountName(userAccount.name);
-      setValidated(true);
+      setValidationStatus("valid");
     } else {
       setSelectedBank("");
       setAccountNumber("");
       setAccountName("");
-      setValidated(false);
+      setValidationStatus(null);
     }
     setIsEditing(true);
   };
@@ -165,7 +158,7 @@ export default function AccountPage() {
     setSelectedBank("");
     setAccountNumber("");
     setAccountName("");
-    setValidated(false);
+    setValidationStatus(null);
   };
 
   const handleContinue = () => {
@@ -182,11 +175,9 @@ export default function AccountPage() {
         code,
       });
       if (data.success) {
-        setValidated(true);
-        setAccountName(data.info.name)
-      } else {
-        setNotvalidated(true)
-      }
+        setValidationStatus("valid");
+        setAccountName(data.info.name);
+      } else setValidationStatus("invalid");
     } catch (err) {
       let message = "Something went wrong. Please try again.";
       if (err instanceof AxiosError && err.response) {
@@ -211,7 +202,7 @@ export default function AccountPage() {
   };
 
   const handleSaveAccount = async () => {
-    if (!validated) return;
+    if (validationStatus !== "valid") return;
     setIsSaving(true);
 
     try {
@@ -226,11 +217,7 @@ export default function AccountPage() {
         toast.success(data.message);
       } else toast.error(data.message);
     } catch (err) {
-      let message = "Something went wrong. Please try again.";
-      if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message || err.response.data.errors;
-      }
-      toast.error(message);
+      handleError(err);
     } finally {
       setIsSaving(false);
     }
@@ -347,7 +334,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {validated && accountName && (
+            {validationStatus === "valid" && accountName && (
               <div className="flex items-center gap-2 rounded-lg border border-green-500/50 bg-green-500/10 p-3">
                 <CircleCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
                 <p className="text-sm text-green-600 dark:text-green-400">
@@ -356,7 +343,7 @@ export default function AccountPage() {
               </div>
             )}
 
-            {notValidated && (
+            {validationStatus === "invalid" && (
               <div className="flex items-center gap-2 rounded-lg border border-red-500/50 bg-red-500/10 p-3">
                 <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
                 <p className="text-sm font-medium text-red-700 dark:text-red-300">
@@ -372,7 +359,7 @@ export default function AccountPage() {
                 !selectedBank ||
                 accountNumber.length !== 10 ||
                 isValidating ||
-                notValidated ||
+                validationStatus === "invalid" ||
                 isSaving
               }
               className="w-full"

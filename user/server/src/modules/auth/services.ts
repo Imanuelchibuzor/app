@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { User, UserDocument } from "../../models/user";
-import Merchant from "../../models/merchant";
+import { Merchant } from "../../models/merchant";
 import AppError from "../../configs/error";
 
 type SafeUser = {

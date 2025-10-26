@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader2, ShieldCheck } from "lucide-react";
-import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -16,6 +15,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth";
+import handleError from "@/utils/handleError";
 
 const ResetPassword = ({
   className,
@@ -74,12 +74,7 @@ const ResetPassword = ({
         navigate("/sign-in");
       } else toast.error(data.message);
     } catch (err) {
-      console.log(err);
-      let message = "Something went wrong. Please try again.";
-      if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message || err.response.data.errors;
-      }
-      toast.error(message);
+      handleError(err);
     } finally {
       setLoading(false);
     }

@@ -17,12 +17,13 @@ function bufferToGenerativePart(buffer: Buffer, mimeType: string) {
 type Info = {
   title: string;
   author: string;
+  language: string;
   pages: string;
   description: string;
 };
 
-function generatePrompt({ title, author, pages, description }: Info) {
-  const prompt = `You're a content reviewer and you're given a pdf file, a cover image, and some metadata for review. The submitted metadata are: Title: ${title}, Author: ${author}, Number of pages: ${pages}, and Description: ${description}. Kindly review the files (both pdf and image) and the submitted metadata and perform the checks below IN ORDER. For each step, if you detect a problem, STOP and return the JSON result described at the end:
+function generatePrompt({ title, author, language, pages, description }: Info) {
+  const prompt = `You're a content reviewer and you're given a pdf file, a cover image, and some metadata for review. The submitted metadata are: Title: ${title}, Author: ${author}, Language: ${language}, Number of pages: ${pages}, and Description: ${description}. Kindly review the files (both pdf and image) and the submitted metadata and perform the checks below IN ORDER. For each step, if you detect a problem, STOP and return the JSON result described at the end:
 
     1) Metadata vs content: Compare the metadata to the pdf file and the cover image. If the title/author/language/pages/description clearly do NOT reflect the document content (e.g., title claims a cookbook but text is fiction, or description contains links/promotions not present in the document), RETURN Not Approved with one short reason.
 
@@ -180,8 +181,8 @@ function promiseTextFromResponse(response: any) {
 // );
 
 export const reviewPublication = async (info: Info, files: any) => {
-  const { title, author, pages, description } = info;
-  const prompt = generatePrompt({ title, author, pages, description });
+  const { title, author, language, pages, description } = info;
+  const prompt = generatePrompt({ title, author, language, pages, description });
 
   if (!files?.file?.length || !files?.cover?.length) {
     return { error: "No PDF or cover image provided." };

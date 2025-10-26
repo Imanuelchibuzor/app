@@ -270,7 +270,7 @@ export const verifyAccount = asyncHandler(
 export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = await validateUser(req);
   const merchant = await validateMerchant(userId);
-  
+
   const parseResult = accountSchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({
@@ -323,6 +323,7 @@ export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
 
   return res.json({
     success: true,
+    message: "Account saved successfully",
     account: {
       code: merchant.account.code,
       name: merchant.account.name,

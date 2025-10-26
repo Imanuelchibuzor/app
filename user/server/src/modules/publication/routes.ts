@@ -7,7 +7,7 @@ import { addProduct } from "./controllers";
 const router = Router();
 
 router.post(
-  "/add-product",
+  "/add",
   getToken,
   upload.fields([
     { name: "file", maxCount: 1 },

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 import { User, PendingUser } from "../../models/user";
-import Merchant from "../../models/merchant";
+import { Merchant } from "../../models/merchant";
 import {
   signUpSchema,
   sendOtpSchema,

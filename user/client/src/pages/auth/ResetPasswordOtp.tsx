@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, Loader2 } from "lucide-react";
-import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -24,6 +23,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/contexts/auth";
+import handleError from "@/utils/handleError";
 
 const ResetPasswordOtp = ({
   className,
@@ -59,11 +59,7 @@ const ResetPasswordOtp = ({
         setTimer(60);
       } else toast.error(data.message);
     } catch (err) {
-      let message = "Something went wrong. Please try again.";
-      if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message || err.response.data.errors;
-      }
-      toast.error(message);
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -98,12 +94,7 @@ const ResetPasswordOtp = ({
         navigate("/reset-password");
       } else toast.error(data.message);
     } catch (err) {
-      console.log(err);
-      let message = "Something went wrong. Please try again.";
-      if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message || err.response.data.errors;
-      }
-      toast.error(message);
+      handleError(err);
     } finally {
       setLoading(false);
     }

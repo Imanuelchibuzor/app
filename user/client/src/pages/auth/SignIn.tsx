@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
-import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 import { cn } from "../../lib/utils";
@@ -22,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth";
 import GoogleButton from "@/components/google-btn";
+import handleError from "@/utils/handleError";
 
 const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
   const navigate = useNavigate();
@@ -74,11 +74,7 @@ const SignIn = ({ className, ...props }: React.ComponentProps<"div">) => {
         toast.error(data.message);
       }
     } catch (err) {
-      let message = "Something went wrong. Please try again.";
-      if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message || err.response.data.errors;
-      }
-      toast.error(message);
+      handleError(err);
     } finally {
       setLoading(false);
     }

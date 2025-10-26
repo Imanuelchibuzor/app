@@ -76,7 +76,8 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
   const info = {
     title,
     author,
-    pages: pages.toString(),
+    language,
+    pages,
     description,
   };
 
@@ -126,19 +127,24 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
     author,
     language,
     category,
-    pages,
+    pages: Number(pages),
     description,
     isRegistered: registrationStatus,
     hasExplicitContent: explicitStatus,
     file: { id: fileId, url: fileUrl },
     cover: { id: coverId, url: coverUrl },
-    price,
-    discount,
+    price: Number(price),
+    discount: Number(discount),
     enableDownloads,
     enableAffiliates: affiliatesStatus,
-    affiliateCommission,
+    affiliateCommission: Number(affiliateCommission),
     status: "approved",
   });
 
-  res.status(201).json({ success: true });
+  res
+    .status(201)
+    .json({
+      success: true,
+      message: "Publication has been added successfully",
+    });
 });

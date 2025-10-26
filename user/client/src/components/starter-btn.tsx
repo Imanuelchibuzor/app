@@ -1,10 +1,10 @@
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { AxiosError } from "axios";
+import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/auth";
 import { Button } from "./ui/button";
 import type { Props } from "@/pages/public/Merchant";
+import handleError from "@/utils/handleError";
 
 const StarterButton = ({
   plan,
@@ -27,11 +27,7 @@ const StarterButton = ({
         setUser({ ...user, plan: "starter" });
       } else toast.error(data.message);
     } catch (err) {
-      let message = "Something went wrong. Please try again.";
-      if (err instanceof AxiosError && err.response) {
-        message = err.response.data.message || err.response.data.errors;
-      }
-      toast.error(message);
+      handleError(err);
     } finally {
       setSubscribing(false);
     }

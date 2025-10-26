@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Upload,
   FileText,
@@ -10,6 +10,7 @@ import {
   BookOpen,
   Download,
   ShoppingCart,
+  Loader2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -36,37 +37,11 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { StarRating } from "@/components/reviews";
-
-// Mock data for dropdowns
-const LANGUAGES = [
-  "English",
-  "Spanish",
-  "French",
-  "German",
-  "Italian",
-  "Portuguese",
-  "Chinese",
-  "Japanese",
-  "Korean",
-  "Arabic",
-  "Hindi",
-  "Russian",
-];
-
-const CATEGORIES = [
-  "Fiction",
-  "Non-Fiction",
-  "Business",
-  "Self-Help",
-  "Technology",
-  "Science",
-  "History",
-  "Biography",
-  "Children",
-  "Education",
-  "Art & Design",
-  "Health & Wellness",
-];
+import languages from "../../data/language.json";
+import categories from "../../data/categories.json";
+import { useAuth } from "@/contexts/auth";
+import { toast } from "sonner";
+import handleError from "@/utils/handleError";
 
 interface FormData {
   title: string;
@@ -87,6 +62,8 @@ interface FormData {
 }
 
 export default function AddProductPage() {
+  const { axios, checkUser } = useAuth();
+
   const [mode, setMode] = useState<"form" | "review">("form");
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -116,6 +93,12 @@ export default function AddProductPage() {
     rating: 0,
     numberOfRatings: 0,
   };
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    checkUser();
+    // eslint-disable-next-line
+  }, []);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -209,12 +192,21 @@ export default function AddProductPage() {
     if (!formData.pdfFile) newErrors.pdfFile = "PDF file is required";
     if (!formData.coverImage) newErrors.coverImage = "Cover image is required";
     if (!formData.price.trim()) newErrors.price = "Price is required";
+    if (Number(formData.price) <= 0)
+      newErrors.price = "Price must be greater than 0";
+    if (Number(formData.discount) < 0 || Number(formData.discount) > 100)
+      newErrors.discount = "Discount is invalid";
     if (
       formData.enableAffiliates === "yes" &&
       !formData.affiliateCommission.trim()
-    ) {
+    )
       newErrors.affiliateCommission = "Affiliate commission is required";
-    }
+    if (
+      formData.enableAffiliates === "yes" &&
+      (Number(formData.affiliateCommission) < 0 ||
+        Number(formData.affiliateCommission) > 100)
+    )
+      newErrors.affiliateCommission = "Affiliate commission is invalid";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -226,10 +218,64 @@ export default function AddProductPage() {
     }
   };
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log("Submitting product:", formData);
-    // Add your submission logic here
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      author: "",
+      language: "",
+      category: "",
+      pages: "",
+      description: "",
+      isRegistered: "no",
+      hasExplicitContent: "no",
+      pdfFile: null,
+      coverImage: null,
+      price: "",
+      discount: "",
+      enableDownloads: "yes",
+      enableAffiliates: "yes",
+      affiliateCommission: "",
+    });
+    setErrors({});
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setLoading(true);
+
+    const submissionData = new FormData();
+    submissionData.append("title", formData.title);
+    submissionData.append("author", formData.author);
+    submissionData.append("language", formData.language);
+    submissionData.append("category", formData.category);
+    submissionData.append("pages", formData.pages);
+    submissionData.append("description", formData.description);
+    submissionData.append("isRegistered", formData.isRegistered);
+    submissionData.append("hasExplicitContent", formData.hasExplicitContent);
+    submissionData.append("file", formData.pdfFile as File);
+    submissionData.append("cover", formData.coverImage as File);
+    submissionData.append("price", formData.price);
+    submissionData.append("discount", formData.discount);
+    submissionData.append("enableDownloads", formData.enableDownloads);
+    submissionData.append("enableAffiliates", formData.enableAffiliates);
+    submissionData.append("affiliateCommission", formData.affiliateCommission);
+
+    try {
+      const { data } = await axios.post("/pub/add", submissionData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (data.success) {
+        toast.success(data.message);
+        setMode("form");
+        resetForm();
+      } else toast.error(data.message);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (mode === "review") {
@@ -265,6 +311,10 @@ export default function AddProductPage() {
                 <p className="text-lg text-muted-foreground">
                   by {formData.author}
                 </p>
+                <p className="text-lg text-muted-foreground">
+                  category:{" "}
+                  {categories[formData.category as keyof typeof categories]}
+                </p>
               </div>
 
               {/* Rating */}
@@ -284,7 +334,9 @@ export default function AddProductPage() {
               <div className="grid grid-cols-4 gap-4 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Languages className="h-5 w-5" />
-                  <p className="font-medium">{formData.language}</p>
+                  <p className="font-medium">
+                    {languages[formData.language as keyof typeof languages]}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-5 w-5" />
@@ -333,12 +385,18 @@ export default function AddProductPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex pt-12 gap-3 justify-center">
+          <div className="flex pt-12 gap-6 justify-center">
             <Button variant="outline" onClick={() => setMode("form")}>
               <Pencil className="mr-1 h-4 w-4" />
               Edit
             </Button>
-            <Button onClick={handleSubmit}>Submit</Button>
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                "Submit"
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -410,9 +468,9 @@ export default function AddProductPage() {
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                      {LANGUAGES.map((lang) => (
-                        <SelectItem key={lang} value={lang}>
-                          {lang}
+                      {Object.entries(languages).map(([code, name]) => (
+                        <SelectItem key={code} value={code}>
+                          {name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -441,9 +499,9 @@ export default function AddProductPage() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                      {Object.entries(categories).map(([code, name]) => (
+                        <SelectItem key={code} value={code}>
+                          {name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -537,8 +595,8 @@ export default function AddProductPage() {
               {/* Has Explicit Content */}
               <div className="space-y-3">
                 <Label>
-                  Does this product contain sexually explicit or harmful
-                  content? <span className="text-destructive">*</span>
+                  Does this product contain sexually explicit content?{" "}
+                  <span className="text-destructive">*</span>
                 </Label>
                 <RadioGroup
                   value={formData.hasExplicitContent}
@@ -729,14 +787,20 @@ export default function AddProductPage() {
                   <Input
                     id="discount"
                     type="number"
-                    min="0"
-                    max="100"
+                    min={0}
+                    max={100}
                     value={formData.discount}
                     onChange={(e) =>
                       handleInputChange("discount", e.target.value)
                     }
                     placeholder="0"
+                    className={cn(errors.discount && "border-destructive")}
                   />
+                  {errors.discount && (
+                    <p className="text-sm text-destructive">
+                      {errors.discount}
+                    </p>
+                  )}
                 </div>
               </div>
 
