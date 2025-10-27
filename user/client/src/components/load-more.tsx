@@ -1,9 +1,16 @@
 import { Button } from "./ui/button";
 
-const LoadMore = () => {
+type Props = {
+  onClick: () => void;
+  loading: boolean;
+};
+
+const LoadMore = ({ onClick, loading }: Props) => {
   return (
     <div className="flex justify-center">
-      <Button>Load More</Button>
+      <Button onClick={onClick} disabled={loading}>
+        Load More
+      </Button>
     </div>
   );
 };

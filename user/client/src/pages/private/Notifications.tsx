@@ -1,5 +1,5 @@
 import type React from "react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Bell,
   ArrowLeft,
@@ -17,59 +17,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth";
+import { toast } from "sonner";
+import handleError from "@/utils/handleError";
+import LoadMore from "@/components/load-more";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useApp } from "@/contexts/app";
 
 // === Types ===
 interface Notification {
   id: number;
-  title: string;
+  subject: string;
   date: string;
   message: string;
-  read: boolean;
+  isRead: boolean;
 }
-
-// === Dummy Data ===
-const initialNotifications: Notification[] = [
-  {
-    id: 1,
-    title: "Product Approved: Ultimate Guide to E-commerce",
-    date: "2025-09-28",
-    message:
-      "Congratulations! Your product, 'The Ultimate Guide to E-commerce Success', has been reviewed and approved by our AI system. It is now live on the marketplace. You can start promoting it immediately.",
-    read: false,
-  },
-  {
-    id: 2,
-    title: "New Affiliate Earned Commission",
-    date: "2025-09-29",
-    message:
-      "A new sale was recorded for your product through an affiliate link. Commission amount: ₦1,250. Check your Live Dashboard for full details on the transaction and affiliate. This message confirms the successful tracking and payout process for affiliate sales, which is a key part of leveraging our promoter network to maximize your earnings on Saerv.",
-    read: false,
-  },
-  {
-    id: 3,
-    title: "System Update: Faster Payouts and Fee Structure Adjustment",
-    date: "2025-09-25",
-    message:
-      "We've upgraded our payment processing system to use a new API, which enables instant payouts for all Pro and Premium users within minutes, 24/7. However, due to increased banking transaction costs associated with this speed, the platform fee on withdrawal for Pro accounts will be slightly adjusted from 10% to 12.5% starting October 15th. Premium accounts will remain at 5%. We believe this change balances speed and service cost effectively.",
-    read: true,
-  },
-  {
-    id: 4,
-    title: "Weekly Sales Report Available",
-    date: "2025-09-22",
-    message:
-      "Your weekly performance report for the period ending September 21st is ready. You had 5 sales and 45 clicks this week. Log in to view detailed analytics.",
-    read: true,
-  },
-  {
-    id: 5,
-    title: "Action Required: Update Payout Information",
-    date: "2025-10-01",
-    message:
-      "We noticed your bank details might be outdated. Please navigate to your Settings > Payouts to confirm or update your banking information to ensure timely withdrawal of your earnings.",
-    read: false,
-  },
-];
 
 // === Empty State Component ===
 const EmptyNotifications = () => {
@@ -101,7 +63,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onSelect,
 }) => {
-  const isUnread = !notification.read;
+  const isUnread = !notification.isRead;
 
   return (
     <Card
@@ -111,7 +73,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       onClick={() => onSelect(notification)}
       role="button"
       tabIndex={0}
-      aria-label={`Notification: ${notification.title}`}
+      aria-label={`Notification: ${notification.subject}`}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -139,7 +101,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                 isUnread ? "font-semibold" : "font-medium"
               }`}
             >
-              {notification.title}
+              {notification.subject}
             </CardTitle>
             <CardDescription className="text-sm">
               {new Date(notification.date).toLocaleDateString("en-US", {
@@ -189,7 +151,7 @@ const NotificationDetail: React.FC<NotificationDetailProps> = ({
 
         <div className="space-y-2 border-b border-border pb-4">
           <CardTitle className="text-2xl leading-tight text-balance">
-            {notification.title}
+            {notification.subject}
           </CardTitle>
           <CardDescription className="flex items-center gap-1">
             <CalendarDays className="w-4 h-4" /> {dateString}
@@ -200,9 +162,10 @@ const NotificationDetail: React.FC<NotificationDetailProps> = ({
       <CardContent className="space-y-6">
         <div className="space-y-3">
           <h3 className="text-lg font-semibold">Full Message:</h3>
-          <div className="text-sm leading-relaxed bg-muted/50 p-4 rounded-lg border border-border whitespace-pre-wrap">
-            {notification.message}
-          </div>
+          <div
+            className="text-sm leading-relaxed bg-muted/50 p-4 rounded-lg border border-border"
+            dangerouslySetInnerHTML={{ __html: notification.message }}
+          />
         </div>
       </CardContent>
     </Card>
@@ -211,25 +174,69 @@ const NotificationDetail: React.FC<NotificationDetailProps> = ({
 
 // === Main Notifications Page Component ===
 const NotificationsPage = () => {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(initialNotifications);
+  const { axios, checkUser } = useAuth();
+  const { setUnread } = useApp();
+
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedNotification, setSelectedNotification] =
     useState<Notification | null>(null);
 
+  useEffect(() => {
+    checkUser();
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async (page: number, limit: number = 12) => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get("/notification/fetch", {
+          params: { page: String(page), limit: String(limit) },
+        });
+
+        if (data.success) {
+          setNotifications((prev) =>
+            page === 1 ? data.notifications : [...prev, ...data.notifications]
+          );
+          setTotalPages(data.totalPages);
+        } else toast.error(data.message);
+      } catch (err) {
+        handleError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications(page);
+    // eslint-disable-next-line
+  }, []);
+
   const unreadCount = useMemo(
-    () => notifications.filter((n) => !n.read).length,
+    () => notifications.filter((n) => !n.isRead).length,
     [notifications]
   );
 
-  const handleSelectNotification = (notification: Notification) => {
+  const handleSelectNotification = async (notification: Notification) => {
     setSelectedNotification(notification);
 
-    if (!notification.read) {
-      setNotifications((prevNotifications) =>
-        prevNotifications.map((n) =>
-          n.id === notification.id ? { ...n, read: true } : n
-        )
-      );
+    if (!notification.isRead) {
+      try {
+        const { data } = await axios.post("/notification/read", {
+          id: notification.id,
+        });
+        if (data.success) {
+          setNotifications((prevNotifications) =>
+            prevNotifications.map((n) =>
+              n.id === notification.id ? { ...n, isRead: true } : n
+            )
+          );
+        } else toast.error(data.message);
+      } catch (err) {
+        handleError(err);
+      }
     }
   };
 
@@ -237,8 +244,22 @@ const NotificationsPage = () => {
     setSelectedNotification(null);
   };
 
-  const handleMarkAllRead = () => {
-    setNotifications((n) => n.map((item) => ({ ...item, read: true })));
+  const handleLoadMore = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const { data } = await axios.post("/notification/read-all");
+      if (data.success) {
+        setNotifications((n) => n.map((item) => ({ ...item, isRead: true })));
+        setUnread(0);
+      } else toast.error(data.message);
+    } catch (err) {
+      handleError(err);
+    }
   };
 
   return (
@@ -268,18 +289,28 @@ const NotificationsPage = () => {
             </header>
 
             <div className="space-y-3">
-              {notifications.length > 0 ? (
+              {notifications.length > 0 &&
                 notifications.map((notification) => (
                   <NotificationItem
                     key={notification.id}
                     notification={notification}
                     onSelect={handleSelectNotification}
                   />
-                ))
-              ) : (
-                <EmptyNotifications />
+                ))}
+
+              {notifications.length === 0 && !loading && <EmptyNotifications />}
+              {notifications.length === 0 && loading && (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-30" />
+                  ))}
+                </div>
               )}
             </div>
+
+            {page < totalPages && (
+              <LoadMore onClick={handleLoadMore} loading={loading} />
+            )}
 
             {unreadCount > 0 && (
               <div className="flex justify-center pt-2">

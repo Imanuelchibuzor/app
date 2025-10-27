@@ -6,6 +6,7 @@ import coverImg from "../../assets/covers/books";
 import LoadMore from "@/components/load-more";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReviewModal } from "@/components/review-modal";
+import { useAuth } from "@/contexts/auth";
 
 interface LibraryItem {
   id: string;
@@ -15,10 +16,11 @@ interface LibraryItem {
 }
 
 const Library = () => {
+  const { loading, setLoading } = useAuth();
   const [selectedProduct, setSelectedProduct] = useState<LibraryItem | null>(
     null
   );
-  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(true);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // Sample library items
@@ -70,6 +72,17 @@ const Library = () => {
     // Trigger download
   };
 
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    try {
+      console.log("Loading more ...");
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="space-y-12">
@@ -83,55 +96,59 @@ const Library = () => {
           </p>
         </div>
 
-        {!loading && <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-16 space-y-6">
-          {libraryItems.map((item) => (
-            <div key={item.id} className="container">
-              <div className="relative aspect-[6/7] w-full">
-                <img
-                  src={item.coverImage}
-                  alt={item.title}
-                  className="object-cover rounded-lg"
-                />
-              </div>
-              <div className="py-2 space-y-3">
-                <div>
-                  <h3 className="font-semibold text-lg line-clamp-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{item.author}</p>
+        {!loading && (
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-16 space-y-6">
+            {libraryItems.map((item) => (
+              <div key={item.id} className="container">
+                <div className="relative aspect-[6/7] w-full">
+                  <img
+                    src={item.coverImage}
+                    alt={item.title}
+                    className="object-cover rounded-lg"
+                  />
                 </div>
+                <div className="py-2 space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-lg line-clamp-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {item.author}
+                    </p>
+                  </div>
 
-                <div className="flex flex-col gap-4">
-                  <Button
-                    onClick={() => handleOpen(item.id)}
-                    className="w-full bg-primary hover:bg-primary/90"
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Open
-                  </Button>
-
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-4">
                     <Button
-                      onClick={() => handleDownload(item.id)}
-                      variant="outline"
-                      className="flex-1"
+                      onClick={() => handleOpen(item.id)}
+                      className="w-full bg-primary hover:bg-primary/90"
                     >
-                      <Download className="w-4 h-4" />
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Open
                     </Button>
 
-                    <Button
-                      onClick={() => handleReviewClick(item)}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleDownload(item.id)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+
+                      <Button
+                        onClick={() => handleReviewClick(item)}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>}
+            ))}
+          </div>
+        )}
 
         {loading && (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-16 space-y-6">
@@ -158,7 +175,9 @@ const Library = () => {
           </div>
         )}
 
-        {!loading && <LoadMore />}
+        {!loading && (
+          <LoadMore onClick={handleLoadMore} loading={loadingMore} />
+        )}
         {loading && <Skeleton className="h-10 w-32 mx-auto" />}
       </div>
 

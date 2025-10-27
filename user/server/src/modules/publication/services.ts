@@ -31,7 +31,7 @@ function generatePrompt({ title, author, language, pages, description }: Info) {
 
     3) Proprietary content & watermarks: Inspect for ISBN numbers, visible watermarks, signatures, or other indications the content is proprietary or requires permission. If present, RETURN Not Approved with one short reason.
 
-    4) Duplicate / plagiarism indicators: Perform a web search to decide whether identical or near-identical products exist online that suggest plagiarism or unauthorized duplication. If you find clear duplication, RETURN Not Approved with one short reason.
+    4) Duplicate / plagiarism indicators: Perform a web search to decide whether a registered, trademarked, or proprietary identical or near-identical publication exist online that suggest plagiarism or unauthorized duplication. If you find clear duplication, RETURN Not Approved with one short reason.
   
     5) Other red flags: Optionally flag any other significant issues (malicious links, personal data leakage, or obvious ethical or legal violations). If any issue is found, RETURN Not Approved with one short reason.
 

@@ -18,15 +18,15 @@ export const getUnreadCount = asyncHandler(
 
 export const fetch = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = await validateUser(req);
-  const parseResult = fetchSchema.safeParse(req.body);
+  const parseResult = fetchSchema.safeParse(req.query);
   if (!parseResult.success) {
     return res.status(400).json({
       success: false,
       errors: parseResult.error.issues.map((err) => err.message),
     });
   }
-  const { page, limit } = parseResult.data;
 
+  const { page, limit } = parseResult.data;
   const currentPage = Math.max(parseInt(page), 1);
   const pageSize = Math.max(parseInt(limit), 12);
 

@@ -22,7 +22,7 @@ export function buildSubscriptionSuccessfulNotification({
   >
     <p style="margin:0 0 1em;">Hello ${name},</p>
 
-    <p style="margin:0 0 1em;">We are pleased to confirm your successful subscription to the ${plan} plan!"</p>
+    <p style="margin:0 0 1em;">We are pleased to confirm your successful subscription to the <strong>${plan}</strong> plan!"</p>
 
     <p style="margin:0 0 1em;">The plan’s features includes:</p>
 
@@ -37,8 +37,8 @@ export function buildSubscriptionSuccessfulNotification({
       <li style="margin:0 0 0.5em;">${features.a}</li>
       <li style="margin:0 0 0.5em;">${features.b}</li>
       <li style="margin:0 0 0.5em;">Minimum withdrawal amount of ${features.c}</li>
-      <li style="margin:0 0 0.5em;">Platform withdrawal fee of ${features.e}</li>
-      <li style="margin:0 0 0.5em;">${features.d}</li>
+      <li style="margin:0 0 0.5em;">Platform withdrawal fee of ${features.d}</li>
+      <li style="margin:0 0 0.5em;">${features.e}</li>
     </ul>
 
     <p style="margin:0 0 1em;">If you have any questions, please don't hesitate to reach out to us through the contact page.</p>

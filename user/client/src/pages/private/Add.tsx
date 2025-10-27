@@ -311,8 +311,8 @@ export default function AddProductPage() {
                 <p className="text-lg text-muted-foreground">
                   by {formData.author}
                 </p>
-                <p className="text-lg text-muted-foreground">
-                  category:{" "}
+                <p className="text-sm text-muted-foreground">
+                  Category:{" "}
                   {categories[formData.category as keyof typeof categories]}
                 </p>
               </div>
