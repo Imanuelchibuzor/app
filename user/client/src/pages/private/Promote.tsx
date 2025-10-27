@@ -5,7 +5,7 @@ import ProductCard from "@/components/product-card";
 
 import coverImg from "../../assets/covers/books";
 import { useEffect, useState } from "react";
-import LoadMore from "@/components/load-more";
+// import LoadMore from "@/components/load-more";
 
 const Promote = () => {
   const [loading, setLoading] = useState(true);
@@ -198,7 +198,7 @@ const Promote = () => {
               <SkeletonCard key={index} />
             ))}
         </div>
-        <LoadMore />
+        {/* <LoadMore /> */}
       </div>
     </div>
   );

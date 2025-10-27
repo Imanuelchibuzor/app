@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import LoadMore from "@/components/load-more";
+// import LoadMore from "@/components/load-more";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 
@@ -233,7 +233,7 @@ const VendorDashboard = () => {
         )}
         {loading && <Skeleton className="w-full h-100 rounded-xl" />}
 
-        {!loading && <LoadMore />}
+        {/* {!loading && <LoadMore />} */}
         {loading && <Skeleton className="h-10 w-32 mx-auto" />}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import type React from "react";
 
-import { useState } from "react";
-import { Send, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Send, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,16 +13,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import handleError from "@/utils/handleError";
+import { useAuth } from "@/contexts/auth";
+import { toast } from "sonner";
 
 const Contact = () => {
+  const { axios, user } = useAuth();
+
+  const acckey = "b270351c-0b48-492a-b2bd-5764ab2d5c7e";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     message: "",
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({ ...prev, name: user.name, email: user.email }));
+    }
+  }, [user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -35,29 +47,53 @@ const Contact = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = "Name is required.";
-    if (!formData.email.trim()) newErrors.email = "Email is required.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address.";
     }
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
     if (!formData.message.trim()) newErrors.message = "Message is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsLoading(true);
-    console.log("Form Data Submitted:", formData);
 
-    // Simulate API submission delay
-    setTimeout(() => {
+    const submissionData = new FormData();
+    submissionData.append("access_key", acckey);
+    submissionData.append("from_name", formData.name);
+    submissionData.append("subject", `New message from ${formData.name}`);
+    submissionData.append("reply_to", formData.email);
+    Object.entries(formData).forEach(([key, value]) => {
+      submissionData.append(key, value);
+    });
+
+    try {
+      const { data } = await axios.post(
+        "https://api.web3forms.com/submit",
+        submissionData,
+        { timeout: 10000, withCredentials: false } // fail faster on network issues
+      );
+
+      if (data.success) {
+        setIsSubmitted(true);
+        setTimeout(() => setIsSubmitted(false), 10000);
+        setFormData({
+          name: user?.name || "",
+          email: user?.email || "",
+          message: "",
+        });
+      } else toast.error(data.message);
+    } catch (err) {
+      console.log(err);
+      handleError(err);
+    } finally {
       setIsLoading(false);
-      setIsSubmitted(true);
-      setFormData({ name: "", email: "", message: "" });
-    }, 1500);
+    }
   };
 
   return (
@@ -156,7 +192,11 @@ const Contact = () => {
 
           {/* Submit Button */}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Sending..." : "Send Message"}
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              "Send Message"
+            )}
           </Button>
         </form>
       </div>

@@ -5,7 +5,7 @@ import ProductCard from "@/components/product-card";
 
 import coverImg from "../../assets/covers/books";
 import { useEffect, useState } from "react";
-import LoadMore from "@/components/load-more";
+// import LoadMore from "@/components/load-more";
 import { useAuth } from "@/contexts/auth";
 
 const Home = () => {
@@ -205,7 +205,7 @@ const Home = () => {
               <SkeletonCard key={index} />
             ))}
         </div>
-        <LoadMore />
+        {/* <LoadMore /> */}
       </div>
     </div>
   );

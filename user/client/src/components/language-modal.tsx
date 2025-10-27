@@ -1,28 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Languages, X } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "./ui/button";
+import languages from "../data/language.json";
 
 const LanguageModal: React.FC = () => {
   const [language, setLanguage] = useState<string>("en");
   const [languageModalOpen, setLanguageModalOpen] = useState<boolean>(false);
-
-  const languages = useMemo(
-    () => [
-      { name: "English", code: "en" },
-      { name: "French", code: "fr" },
-      { name: "German", code: "de" },
-      { name: "Italian", code: "it" },
-      { name: "Portuguese", code: "pt" },
-      { name: "Spanish", code: "es" },
-    ],
-    []
-  );
-
-  // useEffect(() => {
-  //   // log the selected language object for debugging
-  //   console.log(languages.find((lang) => lang.code === language));
-  // }, [language, languages]);
 
   // close on Escape
   useEffect(() => {
@@ -34,8 +19,13 @@ const LanguageModal: React.FC = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [languageModalOpen]);
 
-  const currentLanguageName =
-    languages.find((l) => l.code === language)?.name ?? "English";
+  const currentLanguageName = languages[language as keyof typeof languages];
+
+  const handleSelect = (code: string) => {
+    setLanguage(code); // store code
+    setLanguageModalOpen(false);
+    toast.info("This feature is not available yet.");
+  };
 
   return (
     <>
@@ -76,21 +66,16 @@ const LanguageModal: React.FC = () => {
             </p>
 
             <div className="space-y-1 space-x-2 grid grid-cols-2 gap-4">
-              {languages.map((lang) => (
+              {Object.entries(languages).map(([code, name]) => (
                 <Button
                   variant="ghost"
-                  key={lang.code}
+                  key={code}
                   type="button"
                   className="text-left justify-start"
-                  onClick={() => {
-                    setLanguage(lang.code); // store code
-                    setLanguageModalOpen(false);
-                  }}
+                  onClick={() => handleSelect(code)}
                 >
-                  <span>{lang.name}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {lang.code}
-                  </span>
+                  <span>{name}</span>
+                  <span className="text-muted-foreground text-sm">{code}</span>
                 </Button>
               ))}
             </div>
