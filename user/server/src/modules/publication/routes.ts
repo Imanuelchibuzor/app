@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import getToken from "../../middlewares/auth";
 import upload from "../../middlewares/upload";
-import { addProduct } from "./controllers";
+import { add, fetch, searchByTitle, filterByCategory } from "./controllers";
 
 const router = Router();
 
@@ -13,7 +13,13 @@ router.post(
     { name: "file", maxCount: 1 },
     { name: "cover", maxCount: 1 },
   ]),
-  addProduct
+  add
 );
+
+router.get("/fetch", fetch);
+
+router.get("/search", searchByTitle);
+
+router.get("/filter", filterByCategory);
 
 export default router;

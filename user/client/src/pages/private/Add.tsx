@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Upload,
   FileText,
@@ -62,7 +62,7 @@ interface FormData {
 }
 
 export default function AddProductPage() {
-  const { axios, checkUser } = useAuth();
+  const { axios } = useAuth();
 
   const [mode, setMode] = useState<"form" | "review">("form");
   const [formData, setFormData] = useState<FormData>({
@@ -94,11 +94,6 @@ export default function AddProductPage() {
     numberOfRatings: 0,
   };
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    checkUser();
-    // eslint-disable-next-line
-  }, []);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

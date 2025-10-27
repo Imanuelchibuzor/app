@@ -61,7 +61,7 @@ type Bank = {
 };
 
 export default function AccountPage() {
-  const { axios, checkUser } = useAuth();
+  const { axios } = useAuth();
 
   const [banks, setBanks] = useState<Bank[]>([]);
   const [userAccount, setUserAccount] = useState<BankAccount | null>();
@@ -79,11 +79,6 @@ export default function AccountPage() {
     "valid" | "invalid" | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    checkUser();
-    // eslint-disable-next-line
-  }, []);
 
   useEffect(() => {
     const fetchBanks = async () => {

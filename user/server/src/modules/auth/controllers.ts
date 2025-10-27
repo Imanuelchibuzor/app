@@ -17,6 +17,7 @@ import * as authService from "./services";
 import { sendEmail } from "../../configs/postmark";
 import asyncHandler from "../../utils/asyncHandler";
 import { buildWelcomeEmail, buildResetPasswordEmail } from "./mails";
+import validateData from "../../utils/validateData";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
 const GOOGLE_REDIRECT_URI =
@@ -126,15 +127,10 @@ export const googleCallback = asyncHandler(
 // Manual Auth
 export const signUp = asyncHandler(async (req: Request, res: Response) => {
   // Validate request body using Zod
-  const parseResult = signUpSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
+  const parsed = validateData(req, res, signUpSchema, "body");
+  if (!parsed) return;
 
-  const { name, email, password, language } = parseResult.data;
+  const { name, email, password, language } = parsed;
 
   // Check if user already exists
   const existingUser = await User.findOne({ email }).exec();
@@ -177,15 +173,10 @@ export const signUp = asyncHandler(async (req: Request, res: Response) => {
 
 export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
   // Validate request body using Zod
-  const parseResult = sendOtpSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
+  const parsed = validateData(req, res, sendOtpSchema, "body");
+  if (!parsed) return;
 
-  const { email, language } = parseResult.data;
+  const { email, language } = parsed;
 
   const pendingUser = await PendingUser.findOne({ email }).exec();
   if (!pendingUser) {
@@ -214,16 +205,10 @@ export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
-  // Validate request body using Zod
-  const parseResult = verifyEmailSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
+  const parsed = validateData(req, res, verifyEmailSchema, "body");
+  if (!parsed) return;
 
-  const { email, otp } = parseResult.data;
+  const { email, otp } = parsed;
 
   // Find pending user
   const pendingUser = await PendingUser.findOne({ email }).exec();
@@ -295,15 +280,10 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
 
 export const signIn = asyncHandler(async (req: Request, res: Response) => {
   // Validate request body using Zod
-  const parseResult = signInSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
+  const parsed = validateData(req, res, signInSchema, "body");
+  if (!parsed) return;
 
-  const { email, password, language } = parseResult.data;
+  const { email, password, language } = parsed;
 
   // Find user
   const user = await User.findOne({ email }).exec();
@@ -361,15 +341,10 @@ export const signIn = asyncHandler(async (req: Request, res: Response) => {
 export const forgotPassword = asyncHandler(
   async (req: Request, res: Response) => {
     // Validate request body using Zod
-    const parseResult = sendOtpSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
+    const parsed = validateData(req, res, sendOtpSchema, "body");
+    if (!parsed) return;
 
-    const { email, language } = parseResult.data;
+    const { email, language } = parsed;
 
     const user = await User.findOne({ email }).exec();
     if (!user) {
@@ -393,16 +368,10 @@ export const forgotPassword = asyncHandler(
 
 export const resendPasswordResetOtp = asyncHandler(
   async (req: Request, res: Response) => {
-    // Validate request body using Zod
-    const parseResult = sendOtpSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
+    const parsed = validateData(req, res, sendOtpSchema, "body");
+    if (!parsed) return;
 
-    const { email, language } = parseResult.data;
+    const { email, language } = parsed;
 
     const user = await User.findOne({ email }).exec();
     if (!user) {
@@ -426,16 +395,10 @@ export const resendPasswordResetOtp = asyncHandler(
 
 export const verifyPasswordResetOtp = asyncHandler(
   async (req: Request, res: Response) => {
-    // Validate request body using Zod
-    const parseResult = verifyEmailSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
+    const parsed = validateData(req, res, verifyEmailSchema, "body");
+    if (!parsed) return;
 
-    const { email, otp } = parseResult.data;
+    const { email, otp } = parsed;
 
     // Find pending user
     const user = await User.findOne({ email }).exec();
@@ -473,16 +436,10 @@ export const verifyPasswordResetOtp = asyncHandler(
 
 export const resetPassword = asyncHandler(
   async (req: Request, res: Response) => {
-    // Validate request body using Zod
-    const parseResult = resetPasswordSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
+    const parsed = validateData(req, res, resetPasswordSchema, "body");
+    if (!parsed) return;
 
-    const { email, otp, password } = parseResult.data;
+    const { email, otp, password } = parsed;
 
     // Find user
     const user = await User.findOne({ email }).exec();

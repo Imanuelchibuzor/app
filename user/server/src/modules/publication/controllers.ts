@@ -1,31 +1,37 @@
 import { Request, Response } from "express";
 
 import AppError from "../../configs/error";
-import Publication from "../../models/publication";
-import asyncHandler from "../../utils/asyncHandler";
-import { addPublicationSchema } from "./validation";
-import { validateUser } from "../../utils/validateUser";
-import { validateMerchant } from "../../utils/validateMerchant";
-import { reviewPublication } from "./services";
 import imagekit from "../../configs/imageKit";
-import uploadProductFile from "../../utils/uploadPublication";
-import { buildProductApprovedNotification } from "./notifications";
+import { reviewPublication } from "./services";
+import Publication, { PublicationDocument } from "../../models/publication";
+import asyncHandler from "../../utils/asyncHandler";
+import { validateUser } from "../../utils/validateUser";
 import { Notification } from "../../models/notification";
+import { validateMerchant } from "../../utils/validateMerchant";
+import uploadPublicationFile from "../../utils/uploadPublication";
+import { buildPublicationApprovedNotification } from "./notifications";
+import {
+  addSchema,
+  fetchSchema,
+  filterByCategorySchema,
+  SearchByTitleSchema,
+} from "./validation";
+import {
+  getReviewStatsMap,
+  mapPublicationsWithStats,
+} from "./utils";
+import getPagination from "../../utils/getPagination";
+import validateData from "../../utils/validateData";
 
 const STARTER_LIMIT = 5;
 const PRO_LIMIT = 25;
 
-export const addProduct = asyncHandler(async (req: Request, res: Response) => {
+export const add = asyncHandler(async (req: Request, res: Response) => {
   const { user, userId } = await validateUser(req);
   const merchant = await validateMerchant(userId);
 
-  const parseResult = addPublicationSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
+  const parsed = validateData(req, res, addSchema, "body");
+  if (!parsed) return;
 
   const pubs = await Publication.find({ vendor: merchant._id }).exec();
   if (merchant.plan === "starter" && pubs.length >= STARTER_LIMIT) {
@@ -52,7 +58,7 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
     enableDownloads,
     enableAffiliates,
     affiliateCommission,
-  } = parseResult.data;
+  } = parsed;
 
   // Prevent dupliate titles for the same merchant
   const exists = await Publication.findOne({
@@ -114,7 +120,7 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
   // PDF File
   const pdfFile = files.file[0];
   const pdfName = `ebook_${merchant._id}_${title.replace(/\s+/g, "_")}`;
-  const fileRes = await uploadProductFile(
+  const fileRes = await uploadPublicationFile(
     pdfFile.buffer,
     pdfName,
     pdfFile.mimetype
@@ -144,7 +150,7 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
   });
 
   // Send notification
-  const message = buildProductApprovedNotification(user.name, title);
+  const message = buildPublicationApprovedNotification(user.name, title);
   await Notification.create({
     user: userId,
     subject: `Publication Approved: ${title}`,
@@ -156,3 +162,143 @@ export const addProduct = asyncHandler(async (req: Request, res: Response) => {
     message: "Publication has been added successfully",
   });
 });
+
+export const fetch = asyncHandler(async (req: Request, res: Response) => {
+  const parsed = validateData(req, res, fetchSchema, "query");
+  if (!parsed) return;
+
+  const { language, page, limit } = parsed;
+  const { currentPage, pageSize, skip } = getPagination(page, limit);
+
+  // Using an aggregation pipeline to add a computed field "preferred" which is 1 if publication.language matches the requested language, otherwise 0. Then we sort by "preferred" (descending) then by createdAt.
+  const pubsAgg = await Publication.aggregate([
+    {
+      $addFields: {
+        preferred: {
+          $cond: [{ $eq: ["$language", language] }, 1, 0],
+        },
+      },
+    },
+    { $sort: { preferred: -1, createdAt: -1 } },
+    { $skip: skip },
+    { $limit: pageSize },
+    // Remove the temporary "preferred" field
+    { $project: { preferred: 0 } },
+  ]);
+
+  if (pubsAgg.length === 0) {
+    return res.status(200).json({
+      success: true,
+      publications: [],
+      currentPage,
+      totalPages: 0,
+    });
+  }
+
+  // Get total publications count regardless of language
+  const totalPubs = await Publication.countDocuments();
+
+  // Extract publication IDs for review aggregation
+  const pubIds = pubsAgg.map((pub) => pub._id);
+
+  // Aggregate reviews: group reviews by publication id
+  const reviewStatsMap = await getReviewStatsMap(pubIds);
+
+  // Map over the publications and add review stats if available
+  const pubs = mapPublicationsWithStats(pubsAgg, reviewStatsMap);
+
+  return res.status(200).json({
+    success: true,
+    pubs,
+    currentPage,
+    totalPages: Math.ceil(totalPubs / pageSize),
+  });
+});
+
+export const searchByTitle = asyncHandler(
+  async (req: Request, res: Response) => {
+    const parsed = validateData(req, res, SearchByTitleSchema, "query");
+    if (!parsed) return;
+
+    const { title, page, limit } = parsed;
+    const { currentPage, pageSize, skip } = getPagination(page, limit);
+
+    // Use regex for case-insensitive search
+    const publications: PublicationDocument[] = await Publication.find({
+      title: { $regex: new RegExp(title, "i") },
+    })
+      .skip(skip)
+      .limit(pageSize)
+      .sort({ createdAt: -1 });
+
+    if (publications.length === 0) {
+      throw new AppError("No publication found for the given title", 404, {
+        code: "NOT_FOUND",
+      });
+    }
+
+    const totalPubs = await Publication.countDocuments({
+      title: { $regex: new RegExp(title, "i") },
+    });
+    const pubIds = publications.map((pub) => pub._id);
+    const reviewStatsMap = await getReviewStatsMap(pubIds);
+    const pubs = mapPublicationsWithStats(publications, reviewStatsMap);
+
+    return res.status(200).json({
+      success: true,
+      pubs,
+      currentPage,
+      totalPages: Math.ceil(totalPubs / pageSize),
+    });
+  }
+);
+
+export const filterByCategory = asyncHandler(
+  async (req: Request, res: Response) => {
+    const parsed = validateData(req, res, filterByCategorySchema, "query");
+    if (!parsed) return;
+
+    const { category, language, page, limit } = parsed;
+    const { currentPage, pageSize, skip } = getPagination(page, limit);
+
+    const pubsAgg = await Publication.aggregate([
+      {
+        $match: {
+          category: { $regex: new RegExp(category, "i") },
+        },
+      },
+      {
+        $addFields: {
+          preferred: { $cond: [{ $eq: ["$language", language] }, 1, 0] },
+        },
+      },
+      { $sort: { preferred: -1, createdAt: -1 } },
+      { $skip: skip },
+      { $limit: pageSize },
+      { $project: { preferred: 0 } },
+    ]);
+
+    if (pubsAgg.length === 0) {
+      return res.status(200).json({
+        success: true,
+        products: [],
+        currentPage,
+        totalPages: 0,
+      });
+    }
+
+    const totalPubs = await Publication.countDocuments({
+      category: { $regex: new RegExp(category, "i") },
+    });
+    const pubIds = pubsAgg.map((p) => p._id);
+    const reviewStatsMap = await getReviewStatsMap(pubIds);
+    const pubs = mapPublicationsWithStats(pubsAgg, reviewStatsMap);
+
+    return res.status(200).json({
+      success: true,
+      pubs,
+      currentPage,
+      totalPages: Math.ceil(totalPubs / pageSize),
+    });
+  }
+);

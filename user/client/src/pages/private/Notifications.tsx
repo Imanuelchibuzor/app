@@ -174,7 +174,7 @@ const NotificationDetail: React.FC<NotificationDetailProps> = ({
 
 // === Main Notifications Page Component ===
 const NotificationsPage = () => {
-  const { axios, checkUser } = useAuth();
+  const { axios } = useAuth();
   const { setUnread } = useApp();
 
   const [loading, setLoading] = useState(false);
@@ -185,12 +185,7 @@ const NotificationsPage = () => {
     useState<Notification | null>(null);
 
   useEffect(() => {
-    checkUser();
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    const fetchNotifications = async (page: number, limit: number = 12) => {
+    const fetchNotifications = async (page: number, limit: number = 20) => {
       setLoading(true);
       try {
         const { data } = await axios.get("/notification/fetch", {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const addPublicationSchema = z
+export const addSchema = z
   .object({
     title: z.string().min(1, "Title is required"),
     author: z.string().min(1, "Author is required"),
@@ -106,4 +106,104 @@ export const addPublicationSchema = z
     }
   });
 
-export type AddPublicationInput = z.infer<typeof addPublicationSchema>;
+export const fetchSchema = z
+  .object({
+    language: z.string().min(1, "Language is required"),
+    page: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().min(1, "Page is required")
+    ),
+    limit: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().min(1, "Limit is required")
+    ),
+  })
+  .superRefine((data, ctx) => {
+    const pageNum = Number(data.page);
+    const limitNum = Number(data.limit);
+
+    if (Number.isNaN(pageNum) || pageNum <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["page"],
+        message: "Page must be a positive number",
+      });
+    }
+    if (Number.isNaN(limitNum) || limitNum <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["limit"],
+        message: "Limit must be a positive number",
+      });
+    }
+  });
+
+export const SearchByTitleSchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    page: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().min(1, "Page is required")
+    ),
+    limit: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().min(1, "Limit is required")
+    ),
+  })
+  .superRefine((data, ctx) => {
+    const pageNum = Number(data.page);
+    const limitNum = Number(data.limit);
+
+    if (Number.isNaN(pageNum) || pageNum <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["page"],
+        message: "Page must be a positive number",
+      });
+    }
+    if (Number.isNaN(limitNum) || limitNum <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["limit"],
+        message: "Limit must be a positive number",
+      });
+    }
+  });
+
+export const filterByCategorySchema = z
+  .object({
+    category: z.string().min(1, "Category is required"),
+    language: z.string().min(1, "Language is required"),
+    page: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().min(1, "Page is required")
+    ),
+    limit: z.preprocess(
+      (v) => (typeof v === "string" ? v.trim() : v),
+      z.string().min(1, "Limit is required")
+    ),
+  })
+  .superRefine((data, ctx) => {
+    const pageNum = Number(data.page);
+    const limitNum = Number(data.limit);
+
+    if (Number.isNaN(pageNum) || pageNum <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["page"],
+        message: "Page must be a positive number",
+      });
+    }
+    if (Number.isNaN(limitNum) || limitNum <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["limit"],
+        message: "Limit must be a positive number",
+      });
+    }
+  });
+
+export type AddInput = z.infer<typeof addSchema>;
+export type FetchInput = z.infer<typeof fetchSchema>;
+export type SearchByTitleInput = z.infer<typeof SearchByTitleSchema>;
+export type FilterByCategoryInput = z.infer<typeof filterByCategorySchema>;

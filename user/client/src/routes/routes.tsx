@@ -21,6 +21,7 @@ import ResetPasswordOtp from "../pages/auth/ResetPasswordOtp";
 import ResetPassword from "../pages/auth/ResetPassword";
 
 // Private
+import ProtectedRoute from "@/components/protected-routes";
 import Library from "../pages/private/Library";
 // import Reader from "../pages/private/Reader"
 import Notification from "../pages/private/Notifications";
@@ -30,7 +31,7 @@ import Promote from "../pages/private/Promote";
 import PromotePublication from "../pages/private/PromotePublication";
 import Wallet from "../pages/private/Wallet";
 import Account from "../pages/private/Account";
-import Withdrawal from "../pages/private/Withdrawal"
+import Withdrawal from "../pages/private/Withdrawal";
 import AddProductPage from "@/pages/private/Add";
 
 const router = createBrowserRouter([
@@ -54,18 +55,97 @@ const router = createBrowserRouter([
       { path: "/verify-otp", element: <ResetPasswordOtp /> },
       { path: "/reset-password", element: <ResetPassword /> },
 
-      { path: "/library", element: <Library /> },
+      {
+        path: "/library",
+        element: (
+          <ProtectedRoute>
+            <Library />
+          </ProtectedRoute>
+        ),
+      },
       // { path: "/view", element: <Reader /> },
 
-      { path: "/notification", element: <Notification /> },
-      { path: "/vendor", element: <VendorDashboard /> },
-      { path: "/add", element: <AddProductPage /> },
-      { path: "/affiliate", element: <AffiliateDashboard /> },
-      { path: "/promote", element: <Promote /> },
-      { path: "/promote/:id", element: <PromotePublication /> },
-      { path: "/wallet", element: <Wallet /> },
-      { path: "/account", element: <Account /> },
-      { path: "/withdraw", element: <Withdrawal /> },
+      {
+        path: "/notification",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Notification />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/vendor",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <VendorDashboard />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/add",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <AddProductPage />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/affiliate",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <AffiliateDashboard />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/promote",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Promote />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/promote/:id",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <PromotePublication />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/wallet",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Wallet />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/account",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Account />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/withdraw",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Withdrawal />{" "}
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);

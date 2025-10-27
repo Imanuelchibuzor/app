@@ -9,6 +9,7 @@ import { validateMerchant } from "../../utils/validateMerchant";
 import { verifySubscriptionSchema, accountSchema } from "./validation";
 import { Notification } from "../../models/notification";
 import { buildSubscriptionSuccessfulNotification } from "./notifications";
+import validateData from "../../utils/validateData";
 
 const paystack = axios.create({
   baseURL: "https://api.paystack.co",
@@ -103,14 +104,10 @@ export const initializeProSubscription = asyncHandler(
 export const verifyProSubscription = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = await validateUser(req);
-    const parseResult = verifySubscriptionSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
-    const { reference } = parseResult.data;
+    const parsed = validateData(req, res, verifySubscriptionSchema, "body");
+    if (!parsed) return;
+
+    const { reference } = parsed;
 
     const verifyResp = await paystack.get(`/transaction/verify/${reference}`);
     const verified = verifyResp.data;
@@ -181,14 +178,10 @@ export const initializePremiumSubscription = asyncHandler(
 export const verifyPremiumSubscription = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = await validateUser(req);
-    const parseResult = verifySubscriptionSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
-    const { reference } = parseResult.data;
+    const parsed = validateData(req, res, verifySubscriptionSchema, "body");
+    if (!parsed) return;
+
+    const { reference } = parsed;
 
     const verifyResp = await paystack.get(`/transaction/verify/${reference}`);
     const verified = verifyResp.data;
@@ -257,14 +250,10 @@ export const listBanks = asyncHandler(async (req: Request, res: Response) => {
 
 export const verifyAccount = asyncHandler(
   async (req: Request, res: Response) => {
-    const parseResult = accountSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
-    const { number, code } = parseResult.data;
+    const parsed = validateData(req, res, accountSchema, "body");
+    if (!parsed) return;
+
+    const { number, code } = parsed;
 
     const { data } = await paystack.get("/bank/resolve", {
       params: {
@@ -292,14 +281,10 @@ export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = await validateUser(req);
   const merchant = await validateMerchant(userId);
 
-  const parseResult = accountSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
-  const { number, code } = parseResult.data;
+  const parsed = validateData(req, res, accountSchema, "body");
+  if (!parsed) return;
+
+  const { number, code } = parsed;
 
   // Verify account
   const { data: rd } = await paystack.get("/bank/resolve", {

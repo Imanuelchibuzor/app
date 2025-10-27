@@ -1,4 +1,4 @@
-export function buildProductApprovedNotification(name: string, title: string) {
+export function buildPublicationApprovedNotification(name: string, title: string) {
   return `
   <div
     dir="ltr"
@@ -6,7 +6,7 @@ export function buildProductApprovedNotification(name: string, title: string) {
   >
     <p style="margin:0 0 1em;">Hello ${name},</p>
 
-    <p style="margin:0 0 1em;">Great news! Your product <strong>${title}</strong> is now live on our platform."</p>
+    <p style="margin:0 0 1em;">Great news! Your publication <strong>${title}</strong> is now live on our platform."</p>
 
     <p style="margin:0 0 1em;"><strong>What’s next?</strong></p>
 
@@ -18,9 +18,9 @@ export function buildProductApprovedNotification(name: string, title: string) {
         list-style-position:inside;
       "
     >
-      <li style="margin:0 0 0.5em;">Share your product on social media to increase visibility.</li>
+      <li style="margin:0 0 0.5em;">Share your publication on social media to increase visibility.</li>
       <li style="margin:0 0 0.5em;">Monitor your sales dashboard for performance metrics.</li>
-      <li style="margin:0 0 0.5em;">Consider adding more products to expand your portfolio.</li>
+      <li style="margin:0 0 0.5em;">Consider adding more publications to expand your portfolio.</li>
     </ul>
 
     <p style="margin:0 0 1em;">If you have any questions, please don't hesitate to reach out to us through the contact page.</p>

@@ -1,4 +1,3 @@
-// uploadProductFile.ts
 import imagekit from "../configs/imageKit";
 import AppError from "../configs/error";
 
@@ -11,7 +10,7 @@ type ImageKitUploadOptions = {
 
 export type ImageKitUploadResponse = any;
 
-export default function uploadProductFile(
+export default function uploadPublicationFile(
   fileBuffer: Buffer,
   fileName: string,
   mimeType: string
@@ -26,7 +25,7 @@ export default function uploadProductFile(
     folder: "/e-books/",
     isPrivateFile: true,
   };
-  
+
   try {
     const result = imagekit.upload(uploadOptions);
     return result;

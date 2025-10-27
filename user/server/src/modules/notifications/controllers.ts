@@ -4,6 +4,8 @@ import { Notification } from "../../models/notification";
 import asyncHandler from "../../utils/asyncHandler";
 import { validateUser } from "../../utils/validateUser";
 import { fetchSchema, markAsReadSchema } from "./validation";
+import validateData from "../../utils/validateData";
+import getPagination from "../../utils/getPagination";
 
 export const getUnreadCount = asyncHandler(
   async (req: Request, res: Response) => {
@@ -18,23 +20,17 @@ export const getUnreadCount = asyncHandler(
 
 export const fetch = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = await validateUser(req);
-  const parseResult = fetchSchema.safeParse(req.query);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      success: false,
-      errors: parseResult.error.issues.map((err) => err.message),
-    });
-  }
+  const parsed = validateData(req, res, fetchSchema, "query");
+  if (!parsed) return;
 
-  const { page, limit } = parseResult.data;
-  const currentPage = Math.max(parseInt(page), 1);
-  const pageSize = Math.max(parseInt(limit), 12);
+  const { page, limit } = parsed;
+  const { currentPage, pageSize, skip } = getPagination(page, limit);
 
   // Fetch Notification entries for the user
   const items = await Notification.find({ user: userId })
     .lean()
     .sort({ createdAt: -1 })
-    .skip((currentPage - 1) * pageSize)
+    .skip(skip)
     .limit(pageSize);
 
   // Get total number of notification entries for the user
@@ -60,14 +56,10 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
 export const markAsRead = asyncHandler(
   async (req: Request, res: Response) => {
     const { userId } = await validateUser(req);
-    const parseResult = markAsReadSchema.safeParse(req.body);
-    if (!parseResult.success) {
-      return res.status(400).json({
-        success: false,
-        errors: parseResult.error.issues.map((err) => err.message),
-      });
-    }
-    const { id } = parseResult.data;
+    const parsed = validateData(req, res, markAsReadSchema, "body");
+    if (!parsed) return;
+
+    const { id } = parsed;
 
     await Notification.updateOne({ _id: id, user: userId }, { isRead: true });
     return res.status(200).json({ success: true });

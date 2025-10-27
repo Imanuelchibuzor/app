@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IPublication {
+  _id: Types.ObjectId;
   vendor: Types.ObjectId | string;
   title: string;
   author: string;
