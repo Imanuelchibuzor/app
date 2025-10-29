@@ -16,10 +16,7 @@ import {
   filterByCategorySchema,
   SearchByTitleSchema,
 } from "./validation";
-import {
-  getReviewStatsMap,
-  mapPublicationsWithStats,
-} from "./utils";
+import { getReviewStatsMap, mapPublicationsWithStats } from "./utils";
 import getPagination from "../../utils/getPagination";
 import validateData from "../../utils/validateData";
 
@@ -168,7 +165,7 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
   if (!parsed) return;
 
   const { language, page, limit } = parsed;
-  const { currentPage, pageSize, skip } = getPagination(page, limit);
+  const { pageSize, skip } = getPagination(page, limit);
 
   // Using an aggregation pipeline to add a computed field "preferred" which is 1 if publication.language matches the requested language, otherwise 0. Then we sort by "preferred" (descending) then by createdAt.
   const pubsAgg = await Publication.aggregate([
@@ -190,7 +187,6 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       publications: [],
-      currentPage,
       totalPages: 0,
     });
   }
@@ -210,7 +206,6 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
     pubs,
-    currentPage,
     totalPages: Math.ceil(totalPubs / pageSize),
   });
 });
@@ -221,7 +216,7 @@ export const searchByTitle = asyncHandler(
     if (!parsed) return;
 
     const { title, page, limit } = parsed;
-    const { currentPage, pageSize, skip } = getPagination(page, limit);
+    const { pageSize, skip } = getPagination(page, limit);
 
     // Use regex for case-insensitive search
     const publications: PublicationDocument[] = await Publication.find({
@@ -232,8 +227,10 @@ export const searchByTitle = asyncHandler(
       .sort({ createdAt: -1 });
 
     if (publications.length === 0) {
-      throw new AppError("No publication found for the given title", 404, {
-        code: "NOT_FOUND",
+      return res.status(200).json({
+        success: true,
+        pubs: [],
+        totalPages: 0,
       });
     }
 
@@ -247,7 +244,6 @@ export const searchByTitle = asyncHandler(
     return res.status(200).json({
       success: true,
       pubs,
-      currentPage,
       totalPages: Math.ceil(totalPubs / pageSize),
     });
   }
@@ -259,7 +255,7 @@ export const filterByCategory = asyncHandler(
     if (!parsed) return;
 
     const { category, language, page, limit } = parsed;
-    const { currentPage, pageSize, skip } = getPagination(page, limit);
+    const { pageSize, skip } = getPagination(page, limit);
 
     const pubsAgg = await Publication.aggregate([
       {
@@ -281,8 +277,7 @@ export const filterByCategory = asyncHandler(
     if (pubsAgg.length === 0) {
       return res.status(200).json({
         success: true,
-        products: [],
-        currentPage,
+        pubs: [],
         totalPages: 0,
       });
     }
@@ -297,7 +292,6 @@ export const filterByCategory = asyncHandler(
     return res.status(200).json({
       success: true,
       pubs,
-      currentPage,
       totalPages: Math.ceil(totalPubs / pageSize),
     });
   }

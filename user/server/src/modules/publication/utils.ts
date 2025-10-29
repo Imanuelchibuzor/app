@@ -42,12 +42,11 @@ export function mapPublicationsWithStats(
 
     return {
       id: idStr,
+      cover: pub.cover?.url ?? null,
       title: pub.title,
       author: pub.author,
-      cover: pub.cover?.url ?? null,
       price: pub.price,
-      discount: pub.discount ?? 0,
-      avgRating: stats.avgRating,
+      rating: stats.avgRating,
     };
   });
 }

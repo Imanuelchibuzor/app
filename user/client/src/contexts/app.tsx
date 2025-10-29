@@ -7,6 +7,7 @@ interface AppContextType {
   setLoading: (l: boolean) => void;
   unread: number;
   setUnread: (u: number) => void;
+  formatNGN: (v: number) => string;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -37,11 +38,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     // eslint-disable-next-line
   }, [user]);
 
+  const formatNGN = (v: number) =>
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+    }).format(v);
+
   const value: AppContextType = {
     loading,
     setLoading,
     unread,
     setUnread,
+    formatNGN
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

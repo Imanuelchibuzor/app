@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import {
   Select,
@@ -9,9 +10,62 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/auth";
+import handleError from "@/utils/handleError";
+import type { PublicationProps } from "@/pages/public/Home";
 
-const Categories = () => {
-  const [category, setCategory] = useState("");
+type CategoryProps = {
+  route: string;
+  page: number;
+  setTotalPages: React.Dispatch<React.SetStateAction<number>>;
+  category: string;
+  setCategory: React.Dispatch<React.SetStateAction<string>>;
+  setPublications: React.Dispatch<React.SetStateAction<PublicationProps[]>>;
+};
+
+const Categories = ({
+  route,
+  page,
+  setTotalPages,
+  category,
+  setCategory,
+  setPublications,
+}: CategoryProps) => {
+  const { axios } = useAuth();
+  const firstRunRef = useRef(true);
+
+  useEffect(() => {
+    if (firstRunRef.current) {
+      firstRunRef.current = false;
+      return; // skip initial mount
+    }
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const handleFilter = async (category: string) => {
+      try {
+        const { data } = await axios.get(`/pub/${route}`, {
+          params: { category, language: "en", page: 1, limit: 20 },
+          signal,
+        });
+        if (data.success) {
+          setPublications((prev) =>
+            page === 1 ? data.pubs : [...prev, ...data.pubs]
+          );
+          setTotalPages(data.totalPages);
+        } else toast.error(data.message);
+      } catch (err) {
+        handleError(err);
+      }
+    };
+
+    handleFilter(category);
+    return () => {
+      controller.abort();
+    };
+    // eslint-disable-next-line
+  }, [category]);
 
   return (
     <Select value={category} onValueChange={(v) => setCategory(v)}>
