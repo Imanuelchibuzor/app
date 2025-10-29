@@ -1,9 +1,9 @@
-import Search from "../../components/search";
-import Categories from "@/components/categories";
+// import Search from "../../components/search";
+// import Categories from "@/components/categories";
 import SkeletonCard from "@/components/skeleton-card";
-import PublicationCard from "@/components/publication-card";
+// import PublicationCard from "@/components/publication-card";
 
-import coverImg from "../../assets/covers/books";
+// import coverImg from "../../assets/covers/books";
 import { useEffect, useState } from "react";
 // import LoadMore from "@/components/load-more";
 

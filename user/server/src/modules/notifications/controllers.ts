@@ -24,7 +24,7 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
   if (!parsed) return;
 
   const { page, limit } = parsed;
-  const { currentPage, pageSize, skip } = getPagination(page, limit);
+  const { pageSize, skip } = getPagination(page, limit);
 
   // Fetch Notification entries for the user
   const items = await Notification.find({ user: userId })
@@ -53,18 +53,16 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-export const markAsRead = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { userId } = await validateUser(req);
-    const parsed = validateData(req, res, markAsReadSchema, "body");
-    if (!parsed) return;
+export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const parsed = validateData(req, res, markAsReadSchema, "body");
+  if (!parsed) return;
 
-    const { id } = parsed;
+  const { id } = parsed;
 
-    await Notification.updateOne({ _id: id, user: userId }, { isRead: true });
-    return res.status(200).json({ success: true });
-  }
-);
+  await Notification.updateOne({ _id: id, user: userId }, { isRead: true });
+  return res.status(200).json({ success: true });
+});
 
 export const markAllAsRead = asyncHandler(
   async (req: Request, res: Response) => {
