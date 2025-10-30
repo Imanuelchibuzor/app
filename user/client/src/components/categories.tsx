@@ -15,6 +15,7 @@ import handleError from "@/utils/handleError";
 import type { PublicationProps } from "@/pages/public/Home";
 
 type CategoryProps = {
+  setQuery: React.Dispatch<React.SetStateAction<"title" | "category" | "none">>;
   route: string;
   page: number;
   setTotalPages: React.Dispatch<React.SetStateAction<number>>;
@@ -24,6 +25,7 @@ type CategoryProps = {
 };
 
 const Categories = ({
+  setQuery,
   route,
   page,
   setTotalPages,
@@ -43,10 +45,12 @@ const Categories = ({
     const controller = new AbortController();
     const signal = controller.signal;
 
-    const handleFilter = async (category: string) => {
+    const handleFilter = async (category: string, page: number = 1) => {
+      setQuery("category");
+
       try {
         const { data } = await axios.get(`/pub/${route}`, {
-          params: { category, language: "en", page: 1, limit: 20 },
+          params: { category, language: "en", page, limit: 20 },
           signal,
         });
         if (data.success) {
@@ -60,12 +64,12 @@ const Categories = ({
       }
     };
 
-    handleFilter(category);
+    handleFilter(category, page);
     return () => {
       controller.abort();
     };
     // eslint-disable-next-line
-  }, [category]);
+  }, [category, page]);
 
   return (
     <Select value={category} onValueChange={(v) => setCategory(v)}>

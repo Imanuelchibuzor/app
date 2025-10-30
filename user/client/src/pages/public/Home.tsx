@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import Search from "../../components/search";
+import Search from "@/components/search";
+import LoadMore from "@/components/load-more";
 import Categories from "@/components/categories";
 import SkeletonCard from "@/components/skeleton-card";
 import PublicationCard from "@/components/publication-card";
-
-import LoadMore from "@/components/load-more";
-import { useAuth } from "@/contexts/auth";
-import { useApp } from "@/contexts/app";
-import handleError from "@/utils/handleError";
 import { EmptyOutline } from "@/components/empty-publication";
+
+import { useApp } from "@/contexts/app";
+import { useAuth } from "@/contexts/auth";
+import handleError from "@/utils/handleError";
 
 export type PublicationProps = {
   id: string;
@@ -26,12 +26,15 @@ const Home = () => {
   const { axios, decodeUser, setUser } = useAuth();
   const { loading, setLoading } = useApp();
 
-  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didMountRef = useRef(false);
+  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [publications, setPublications] = useState<PublicationProps[]>([]);
-  const [search, setSearch] = useState<string>("");
+  const [query, setQuery] = useState<"title" | "category" | "none">("none");
+  const [title, setTitle] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [page, setPage] = useState<number>(1);
+  const [searchPage, setSearchPage] = useState<number>(1);
+  const [categoriesPage, setCategoriesPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(0);
 
   useEffect(() => {
@@ -78,7 +81,7 @@ const Home = () => {
     }
 
     searchRef.current = setTimeout(() => {
-      if (search === "") fetchPublications();
+      if (title === "") fetchPublications();
     }, 1000);
 
     // cleanup on unmount / before next run
@@ -88,7 +91,7 @@ const Home = () => {
         searchRef.current = null;
       }
     };
-  }, [search, fetchPublications]);
+  }, [title, fetchPublications]);
 
   useEffect(() => {
     if (category === "al") fetchPublications();
@@ -96,8 +99,15 @@ const Home = () => {
   }, [category]);
 
   const handleLoadMore = () => {
-    if (page < totalPages) {
-      setPage((prev) => prev + 1);
+    switch (query) {
+      case "title":
+        if (searchPage < totalPages) setSearchPage((prev) => prev + 1);
+        break;
+      case "category":
+        if (categoriesPage < totalPages) setCategoriesPage((prev) => prev + 1);
+        break;
+      default:
+        if (page < totalPages) setPage((prev) => prev + 1);
     }
   };
 
@@ -106,18 +116,20 @@ const Home = () => {
       <div className="flex flex-col items-center justify-center space-y-4">
         <div className="mb-16 w-full flex flex-col items-center space-y-4">
           <Search
+            setQuery={setQuery}
             route="search"
-            page={page}
+            page={searchPage}
             setTotalPages={setTotalPages}
-            search={search}
-            setSearch={setSearch}
+            search={title}
+            setSearch={setTitle}
             setPublications={setPublications}
           />
 
           <div>
             <Categories
+              setQuery={setQuery}
               route="filter"
-              page={page}
+              page={categoriesPage}
               setTotalPages={setTotalPages}
               category={category}
               setCategory={setCategory}

@@ -20,8 +20,26 @@ import { getReviewStatsMap, mapPublicationsWithStats } from "./utils";
 import getPagination from "../../utils/getPagination";
 import validateData from "../../utils/validateData";
 
-const STARTER_LIMIT = 5;
-const PRO_LIMIT = 25;
+type PlanFeatures = {
+  id: string;
+  listings: number;
+  promotions: number;
+}
+
+const getPlanFeatures = (plan: string): PlanFeatures => {
+  if (plan === "starter") {
+    return {
+      id: "starter",
+      listings: 5,
+      promotions: 10,
+    };
+  }
+  return {
+    id: "pro",
+    listings: 25,
+    promotions: 50,
+  };
+};
 
 export const add = asyncHandler(async (req: Request, res: Response) => {
   const { user, userId } = await validateUser(req);
@@ -30,12 +48,13 @@ export const add = asyncHandler(async (req: Request, res: Response) => {
   const parsed = validateData(req, res, addSchema, "body");
   if (!parsed) return;
 
+  const plan = getPlanFeatures(merchant.plan);
   const pubs = await Publication.find({ vendor: merchant._id }).exec();
-  if (merchant.plan === "starter" && pubs.length >= STARTER_LIMIT) {
+  if (merchant.plan === "starter" && pubs.length >= plan.listings) {
     throw new AppError("You have reached your starter plan limit.", 400, {
       code: "STARTER_PLAN_LIMIT",
     });
-  } else if (merchant.plan === "pro" && pubs.length >= PRO_LIMIT) {
+  } else if (merchant.plan === "pro" && pubs.length >= plan.listings) {
     throw new AppError("You have reached your pro plan limit.", 400, {
       code: "PRO_PLAN_LIMIT",
     });

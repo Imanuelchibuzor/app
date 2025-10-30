@@ -16,6 +16,9 @@ import {
 import handleError from "@/utils/handleError";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
+import { FieldSeparator } from "@/components/ui/field";
+import WhatsAppButton from "@/components/whatsapp-btn";
+import GmailButton from "@/components/gmail-btn";
 
 const Contact = () => {
   const { axios, user } = useAuth();
@@ -26,7 +29,7 @@ const Contact = () => {
     email: "",
     message: "",
   });
-  const [isSubmitted, setIsSubmitted] = useState(true);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -115,6 +118,15 @@ const Contact = () => {
 
         {/* Contact Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="w-full flex items-center justify-center gap-3">
+            <WhatsAppButton />
+            <GmailButton />
+          </div>
+
+          <div>
+            <FieldSeparator>OR CONTINUE WITH</FieldSeparator>
+          </div>
+
           {/* Name Input */}
           <div className="space-y-2">
             <Label htmlFor="name">Your Name</Label>
