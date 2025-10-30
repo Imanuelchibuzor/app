@@ -33,6 +33,7 @@ export async function getReviewStatsMap(pubIds: (Types.ObjectId | string)[]) {
  * documents may be Mongoose docs or plain objects (lean()).
  */
 export function mapPublicationsWithStats(
+  affiliatesEnabled: boolean,
   publications: Array<PublicationDocument | any>,
   reviewStatsMap: Record<string, { avgRating: number }>
 ) {
@@ -47,6 +48,7 @@ export function mapPublicationsWithStats(
       author: pub.author,
       price: pub.price,
       rating: stats.avgRating,
+      commission: affiliatesEnabled ? pub.affiliateCommission : null,
     };
   });
 }

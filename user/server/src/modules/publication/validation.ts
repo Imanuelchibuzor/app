@@ -108,6 +108,9 @@ export const addSchema = z
 
 export const fetchSchema = z
   .object({
+    forAffiliates: z.enum(["yes", "no"], {
+      error: "Affiliate status is required",
+    }),
     language: z.string().min(1, "Language is required"),
     page: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),
@@ -140,6 +143,9 @@ export const fetchSchema = z
 
 export const SearchByTitleSchema = z
   .object({
+    forAffiliates: z.enum(["yes", "no"], {
+      error: "Affiliate status is required",
+    }),
     title: z.string().min(1, "Title is required"),
     page: z.preprocess(
       (v) => (typeof v === "string" ? v.trim() : v),
@@ -172,6 +178,9 @@ export const SearchByTitleSchema = z
 
 export const filterByCategorySchema = z
   .object({
+    forAffiliates: z.enum(["yes", "no"], {
+      error: "Affiliate status is required",
+    }),
     category: z.string().min(1, "Category is required"),
     language: z.string().min(1, "Language is required"),
     page: z.preprocess(

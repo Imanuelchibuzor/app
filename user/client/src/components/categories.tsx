@@ -16,7 +16,7 @@ import type { PublicationProps } from "@/pages/public/Home";
 
 type CategoryProps = {
   setQuery: React.Dispatch<React.SetStateAction<"title" | "category" | "none">>;
-  route: string;
+  forAffiliates: string;
   page: number;
   setTotalPages: React.Dispatch<React.SetStateAction<number>>;
   category: string;
@@ -26,7 +26,7 @@ type CategoryProps = {
 
 const Categories = ({
   setQuery,
-  route,
+  forAffiliates,
   page,
   setTotalPages,
   category,
@@ -49,8 +49,8 @@ const Categories = ({
       setQuery("category");
 
       try {
-        const { data } = await axios.get(`/pub/${route}`, {
-          params: { category, language: "en", page, limit: 20 },
+        const { data } = await axios.get("/pub/filter", {
+          params: { forAffiliates, category, language: "en", page, limit: 20 },
           signal,
         });
         if (data.success) {

@@ -9,7 +9,7 @@ import { useEffect, useRef } from "react";
 
 type SearchProps = {
   setQuery: React.Dispatch<React.SetStateAction<"title" | "category" | "none">>;
-  route: string;
+  forAffiliates: string;
   page: number;
   setTotalPages: React.Dispatch<React.SetStateAction<number>>;
   search: string;
@@ -19,7 +19,7 @@ type SearchProps = {
 
 const SearchForm = ({
   setQuery,
-  route,
+  forAffiliates,
   page,
   setTotalPages,
   search,
@@ -32,8 +32,8 @@ const SearchForm = ({
 
   const performSearch = async (page: number) => {
     try {
-      const { data } = await axios.get(`/pub/${route}`, {
-        params: { title: search, language: "en", page, limit: 20 },
+      const { data } = await axios.get("/pub/search", {
+        params: {forAffiliates, title: search, language: "en", page, limit: 20 },
       });
       if (data.success) {
         setPublications((prev) =>

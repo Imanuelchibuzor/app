@@ -24,7 +24,7 @@ type PlanFeatures = {
   id: string;
   listings: number;
   promotions: number;
-}
+};
 
 const getPlanFeatures = (plan: string): PlanFeatures => {
   if (plan === "starter") {
@@ -183,11 +183,25 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
   const parsed = validateData(req, res, fetchSchema, "query");
   if (!parsed) return;
 
-  const { language, page, limit } = parsed;
+  const { forAffiliates, language, page, limit } = parsed;
   const { pageSize, skip } = getPagination(page, limit);
+  const affiliatesEnabled = forAffiliates === "yes" ? true : false;
 
-  // Using an aggregation pipeline to add a computed field "preferred" which is 1 if publication.language matches the requested language, otherwise 0. Then we sort by "preferred" (descending) then by createdAt.
-  const pubsAgg = await Publication.aggregate([
+  // Match filter depending on affiliatesEnabled.
+  // If affiliatesEnabled is true, filter by enableAffiliates: true
+  // Otherwise we keep an empty filter (match all).
+  const baseMatch: Record<string, any> = affiliatesEnabled
+    ? { enableAffiliates: true }
+    : {};
+
+  // Aggregation pipeline:
+  // 1. Match (applies affiliates filter if needed)
+  // 2. Add 'preferred' computed field for language preference
+  // 3. Sort by preferred then createdAt
+  // 4. Apply pagination (skip / limit)
+  // 5. Remove temporary 'preferred' field in projection
+  const pipeline: any[] = [
+    { $match: baseMatch },
     {
       $addFields: {
         preferred: {
@@ -198,9 +212,10 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
     { $sort: { preferred: -1, createdAt: -1 } },
     { $skip: skip },
     { $limit: pageSize },
-    // Remove the temporary "preferred" field
     { $project: { preferred: 0 } },
-  ]);
+  ];
+
+  const pubsAgg = await Publication.aggregate(pipeline);
 
   if (pubsAgg.length === 0) {
     return res.status(200).json({
@@ -210,8 +225,9 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  // Get total publications count regardless of language
-  const totalPubs = await Publication.countDocuments();
+  // Get total publications
+  const totalFilter = baseMatch;
+  const totalPubs = await Publication.countDocuments(totalFilter);
 
   // Extract publication IDs for review aggregation
   const pubIds = pubsAgg.map((pub) => pub._id);
@@ -220,7 +236,11 @@ export const fetch = asyncHandler(async (req: Request, res: Response) => {
   const reviewStatsMap = await getReviewStatsMap(pubIds);
 
   // Map over the publications and add review stats if available
-  const pubs = mapPublicationsWithStats(pubsAgg, reviewStatsMap);
+  const pubs = mapPublicationsWithStats(
+    affiliatesEnabled,
+    pubsAgg,
+    reviewStatsMap
+  );
 
   return res.status(200).json({
     success: true,
@@ -234,13 +254,17 @@ export const searchByTitle = asyncHandler(
     const parsed = validateData(req, res, SearchByTitleSchema, "query");
     if (!parsed) return;
 
-    const { title, page, limit } = parsed;
+    const { forAffiliates, title, page, limit } = parsed;
     const { pageSize, skip } = getPagination(page, limit);
+    const affiliatesEnabled = forAffiliates === "yes" ? true : false;
+
+    // Filter for query
+    const filter: Record<string, any> = affiliatesEnabled
+      ? { enableAffiliates: true, title: { $regex: new RegExp(title, "i") } }
+      : { title: { $regex: new RegExp(title, "i") } };
 
     // Use regex for case-insensitive search
-    const publications: PublicationDocument[] = await Publication.find({
-      title: { $regex: new RegExp(title, "i") },
-    })
+    const publications: PublicationDocument[] = await Publication.find(filter)
       .skip(skip)
       .limit(pageSize)
       .sort({ createdAt: -1 });
@@ -258,7 +282,11 @@ export const searchByTitle = asyncHandler(
     });
     const pubIds = publications.map((pub) => pub._id);
     const reviewStatsMap = await getReviewStatsMap(pubIds);
-    const pubs = mapPublicationsWithStats(publications, reviewStatsMap);
+    const pubs = mapPublicationsWithStats(
+      affiliatesEnabled,
+      publications,
+      reviewStatsMap
+    );
 
     return res.status(200).json({
       success: true,
@@ -273,15 +301,20 @@ export const filterByCategory = asyncHandler(
     const parsed = validateData(req, res, filterByCategorySchema, "query");
     if (!parsed) return;
 
-    const { category, language, page, limit } = parsed;
+    const { forAffiliates, category, language, page, limit } = parsed;
     const { pageSize, skip } = getPagination(page, limit);
 
-    const pubsAgg = await Publication.aggregate([
-      {
-        $match: {
+    // Create filter for query
+    const affiliatesEnabled = forAffiliates === "yes" ? true : false;
+    const baseMatch: Record<string, any> = affiliatesEnabled
+      ? {
+          enableAffiliates: true,
           category: { $regex: new RegExp(category, "i") },
-        },
-      },
+        }
+      : { category: { $regex: new RegExp(category, "i") } };
+
+    const pipeline: any[] = [
+      { $match: baseMatch },
       {
         $addFields: {
           preferred: { $cond: [{ $eq: ["$language", language] }, 1, 0] },
@@ -291,7 +324,9 @@ export const filterByCategory = asyncHandler(
       { $skip: skip },
       { $limit: pageSize },
       { $project: { preferred: 0 } },
-    ]);
+    ];
+
+    const pubsAgg = await Publication.aggregate(pipeline);
 
     if (pubsAgg.length === 0) {
       return res.status(200).json({
@@ -306,7 +341,11 @@ export const filterByCategory = asyncHandler(
     });
     const pubIds = pubsAgg.map((p) => p._id);
     const reviewStatsMap = await getReviewStatsMap(pubIds);
-    const pubs = mapPublicationsWithStats(pubsAgg, reviewStatsMap);
+    const pubs = mapPublicationsWithStats(
+      affiliatesEnabled,
+      pubsAgg,
+      reviewStatsMap
+    );
 
     return res.status(200).json({
       success: true,

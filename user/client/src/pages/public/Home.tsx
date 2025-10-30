@@ -47,7 +47,7 @@ const Home = () => {
     setLoading(true);
     try {
       const { data } = await axios.get("/pub/fetch", {
-        params: { language: "en", page, limit: 20 },
+        params: { forAffiliates: "no", language: "en", page, limit: 20 },
       });
       if (data.success) {
         setPublications((prev) =>
@@ -117,7 +117,7 @@ const Home = () => {
         <div className="mb-16 w-full flex flex-col items-center space-y-4">
           <Search
             setQuery={setQuery}
-            route="search"
+            forAffiliates="no"
             page={searchPage}
             setTotalPages={setTotalPages}
             search={title}
@@ -128,7 +128,7 @@ const Home = () => {
           <div>
             <Categories
               setQuery={setQuery}
-              route="filter"
+              forAffiliates="no"
               page={categoriesPage}
               setTotalPages={setTotalPages}
               category={category}
@@ -153,7 +153,15 @@ const Home = () => {
 
         {publications?.length === 0 && !loading && <EmptyOutline />}
 
-        {page < totalPages && (
+        {query === "none" && page < totalPages && (
+          <LoadMore onClick={handleLoadMore} loading={loading} />
+        )}
+
+        {query === "title" && searchPage < totalPages && (
+          <LoadMore onClick={handleLoadMore} loading={loading} />
+        )}
+
+        {query === "category" && categoriesPage < totalPages && (
           <LoadMore onClick={handleLoadMore} loading={loading} />
         )}
       </div>
