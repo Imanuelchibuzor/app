@@ -1,4 +1,3 @@
-import { Request } from "express";
 import { Types } from "mongoose";
 
 import { Merchant, MerchantDocument } from "../models/merchant";

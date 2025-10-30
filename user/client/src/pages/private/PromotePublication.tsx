@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Download,
   Share2,
@@ -9,107 +9,114 @@ import {
   Loader2,
   EyeOff,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import coverImg from "../../assets/covers/books";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Reviews, StarRating } from "@/components/reviews";
-import { Skeleton } from "@/components/ui/skeleton";
 import PromoteSuccessModal from "@/components/promote-success";
 
-// Mock product data
-const productData = {
-  id: "1",
-  title: "The Complete Guide to Digital Marketing",
-  author: "Sarah Johnson",
-  image: coverImg.book_24,
-  rating: 4.5,
-  numberOfRatings: 1234,
-  description:
-    "Master the art of digital marketing with this comprehensive guide. Learn proven strategies for SEO, social media marketing, content creation, email campaigns, and analytics. Perfect for beginners and experienced marketers looking to stay ahead in the digital landscape. Master the art of digital marketing with this comprehensive guide. Learn proven strategies for SEO, social media marketing, content creation, email campaigns, and analytics. Perfect for beginners and experienced marketers looking to stay ahead in the digital landscape. Master the art of digital marketing with this comprehensive guide. Learn proven strategies for SEO, social media marketing, content creation, email campaigns, and analytics. Perfect for beginners and experienced marketers looking to stay ahead in the digital landscape. Master the art of digital marketing with this comprehensive guide. Learn proven strategies for SEO, social media marketing, content creation, email campaigns, and analytics. Perfect for beginners and experienced marketers looking to stay ahead in the digital landscape.",
-  language: "English",
-  pages: 350,
-  downloadable: true,
-  isExplicit: true,
-  discount: 30,
-  newPrice: 24.99,
-  oldPrice: 35.99,
-  commission: 20,
+import { useApp } from "@/contexts/app";
+import { useAuth } from "@/contexts/auth";
+import languages from "@/data/language.json";
+import handleError from "@/utils/handleError";
+
+export type Publication = {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+  description: string;
+  language: string;
+  pages: number;
+  price: number;
+  discount: number;
+  rating: number;
+  enablesDownload: boolean;
+  hasExplicitContent: boolean;
+  commission: number;
+  reviewCount: number;
+  averageRating: number;
+  reviews: [
+    {
+      id: string;
+      avatar: string;
+      name: string;
+      date: string;
+      rating: number;
+      comment: string;
+    }
+  ];
 };
 
-const reviews = [
-  {
-    id: "1",
-    avatar: "/placeholder.svg?height=40&width=40",
-    name: "Michael Chen",
-    date: "2024-01-15",
-    rating: 5,
-    comment:
-      "Excellent resource! The strategies outlined in this book helped me increase my website traffic by 200%. Highly recommended for anyone serious about digital marketing.",
-  },
-  {
-    id: "2",
-    avatar: "/placeholder.svg?height=40&width=40",
-    name: "Emily Rodriguez",
-    date: "2024-01-10",
-    rating: 4,
-    comment:
-      "Very comprehensive and well-written. The only reason I'm not giving 5 stars is that some sections could use more recent case studies. Overall, a great purchase!",
-  },
-  {
-    id: "3",
-    avatar: "/placeholder.svg?height=40&width=40",
-    name: "David Thompson",
-    date: "2024-01-05",
-    rating: 5,
-    comment:
-      "This book transformed my approach to digital marketing. The author explains complex concepts in an easy-to-understand way. Worth every penny!",
-  },
-  {
-    id: "4",
-    avatar: "/placeholder.svg?height=40&width=40",
-    name: "Lisa Anderson",
-    date: "2023-12-28",
-    rating: 4,
-    comment:
-      "Great content with actionable insights. I've already implemented several strategies from this book with positive results. Would definitely recommend to colleagues.",
-  },
-];
-
 const Promoteproduct = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [promoting, setPromoting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { axios } = useAuth();
+  const { loading, setLoading, formatNGN, calculateDiscount } = useApp();
 
-  const handlePromote = () => {
-    setPromoting(true);
-
-    setTimeout(() => {
-      setPromoting(false);
-      setIsModalOpen(true);
-    }, 3000);
-  };
+  const [pub, setPub] = useState<Publication>({} as Publication);
+  const [link, setLink] = useState<string>("");
+  const [promoting, setPromoting] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-  }, []);
+    const fetchPublication = async () => {
+      setLoading(true);
+
+      try {
+        const { data } = await axios.get("/pub/fetch-by-id", {
+          params: { id, forAffiliates: "yes" },
+        });
+        if (data.success) {
+          setPub(data.pub);
+        } else toast.error(data.message);
+      } catch (err) {
+        handleError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPublication();
+    // eslint-disable-next-line
+  }, [id]);
+
+  const handlePromote = async () => {
+    setPromoting(true);
+
+    try {
+      const { data } = await axios.post("/pub/promote", {
+        id,
+      });
+      
+      if (data.success) {
+        setLink(data.link)
+        setIsModalOpen(true);
+      } else toast.error(data.message);
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setPromoting(false);
+    }
+  };
 
   return (
-    <>
-      {!promoting && setIsModalOpen && (
+    <section>
+      {!promoting && isModalOpen && (
         <PromoteSuccessModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          productImage={productData.image}
-          productTitle={productData.title}
+          cover={pub?.cover}
+          title={pub?.title}
+          link={link}
         />
       )}
-      {!loading && (
+
+      {pub && !loading && (
         <div className="min-h-screen bg-background">
           {/* Back Button */}
           <div className="container mx-auto p-2 mb-2">
@@ -127,13 +134,13 @@ const Promoteproduct = () => {
                 <div className="overflow-hidden w-full max-w-md rounded-xl">
                   <div className="relative aspect-[3/4] w-full">
                     <img
-                      src={productData.image}
-                      alt={productData.title}
+                      src={pub?.cover}
+                      alt={pub?.title}
                       className="w-full object-cover"
                     />
-                    {productData.discount > 0 && (
+                    {pub.discount > 0 && (
                       <Badge className="absolute top-4 right-4 bg-destructive">
-                        -{productData.discount}%
+                        -{pub?.discount}%
                       </Badge>
                     )}
                   </div>
@@ -144,21 +151,24 @@ const Promoteproduct = () => {
               <div className="flex flex-col gap-6">
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-balance mb-2">
-                    {productData.title}
+                    {pub?.title}
                   </h1>
                   <p className="text-lg text-muted-foreground">
-                    by {productData.author}
+                    by {pub?.author}
                   </p>
                 </div>
 
                 {/* Rating */}
-                <StarRating productData={productData} />
+                <StarRating
+                  count={pub?.reviewCount}
+                  average={pub.averageRating}
+                />
 
                 {/* Description */}
                 <ScrollArea className="max-h-[270px]">
                   <h2 className="text-xl font-semibold mb-2">Description</h2>
                   <p className="text-muted-foreground leading-relaxed">
-                    {productData.description}
+                    {pub?.description}
                   </p>
                 </ScrollArea>
 
@@ -168,22 +178,24 @@ const Promoteproduct = () => {
                 <div className="grid grid-cols-4 gap-4 text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Languages className="h-5 w-5" />
-                    <p className="font-medium">{productData.language}</p>
+                    <p className="font-medium">
+                      {languages[pub?.language as keyof typeof languages]}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5" />
-                    <p className="font-medium">{productData.pages}</p>
+                    <p className="font-medium">{pub?.pages}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Download className="h-5 w-5" />
                     <p className="font-medium">
-                      {productData.downloadable ? "Yes" : "No"}
+                      {pub?.enablesDownload ? "Yes" : "No"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <EyeOff className="h-5 w-5" />
                     <p className="font-medium">
-                      {productData.isExplicit ? "Yes" : "No"}
+                      {pub?.hasExplicitContent ? "Yes" : "No"}
                     </p>
                   </div>
                 </div>
@@ -193,16 +205,16 @@ const Promoteproduct = () => {
                 {/* Price and Buy Section */}
                 <div className="space-y-4">
                   <div className="flex items-baseline gap-3">
-                    <span className="text-3xl font-bold text-primary">
-                      ${productData.newPrice}
+                    <span className="text-3xl font-bold">
+                      {formatNGN(calculateDiscount(pub?.price, pub?.discount))}
                     </span>
-                    {productData.discount > 0 && (
+                    {pub?.discount > 0 && (
                       <span className="text-xl text-muted-foreground line-through">
-                        ${productData.oldPrice}
+                        {formatNGN(pub?.price)}
                       </span>
                     )}
                     <span className="text-3xl font-bold text-green-500">
-                      {productData.commission}%
+                      {pub?.commission}%
                     </span>
                   </div>
 
@@ -210,6 +222,7 @@ const Promoteproduct = () => {
                     size="icon-lg"
                     onClick={handlePromote}
                     className="w-full gap-2"
+                    disabled={promoting}
                   >
                     {promoting ? (
                       <Loader2 className="animate-spin" />
@@ -227,7 +240,7 @@ const Promoteproduct = () => {
             {/* Customer Reviews Section */}
             <div className="mt-16">
               <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
-              <Reviews reviews={reviews} />
+              <Reviews reviews={pub?.reviews} />
             </div>
           </div>
         </div>
@@ -299,7 +312,7 @@ const Promoteproduct = () => {
           </div>
         </div>
       )}
-    </>
+    </section>
   );
 };
 

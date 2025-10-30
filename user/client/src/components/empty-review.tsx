@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { MessageCircleOff } from "lucide-react";
 
 import {
   Empty,
@@ -8,20 +8,20 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-const EmptyPublication = () => {
+const EmptyReview = () => {
   return (
     <Empty className="border border-dashed">
       <EmptyHeader>
         <EmptyMedia variant="icon">
-          <BookOpen />
+          <MessageCircleOff />
         </EmptyMedia>
-        <EmptyTitle>No Publication</EmptyTitle>
+        <EmptyTitle>No Review</EmptyTitle>
         <EmptyDescription>
-          There is no publication that matches your query.
+          There is no review for this publication yet.
         </EmptyDescription>
       </EmptyHeader>
     </Empty>
   );
 };
 
-export default EmptyPublication;
+export default EmptyReview;

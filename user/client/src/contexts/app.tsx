@@ -8,6 +8,7 @@ interface AppContextType {
   unread: number;
   setUnread: (u: number) => void;
   formatNGN: (v: number) => string;
+  calculateDiscount: (price: number, discount: number) => number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -44,12 +45,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       currency: "NGN",
     }).format(v);
 
+  const calculateDiscount = (price: number, discount: number) => {
+    const discountedPrice = (price * discount) / 100;
+    return price - discountedPrice;
+  };
+
   const value: AppContextType = {
     loading,
     setLoading,
     unread,
     setUnread,
-    formatNGN
+    formatNGN,
+    calculateDiscount,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

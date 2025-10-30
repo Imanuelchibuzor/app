@@ -6,7 +6,7 @@ import LoadMore from "@/components/load-more";
 import Categories from "@/components/categories";
 import SkeletonCard from "@/components/skeleton-card";
 import PublicationCard from "@/components/publication-card";
-import { EmptyOutline } from "@/components/empty-publication";
+import EmptyPublication from "@/components/empty-publication";
 
 import { useApp } from "@/contexts/app";
 import { useAuth } from "@/contexts/auth";
@@ -151,7 +151,7 @@ const Home = () => {
             ))}
         </div>
 
-        {publications?.length === 0 && !loading && <EmptyOutline />}
+        {publications?.length === 0 && !loading && <EmptyPublication />}
 
         {query === "none" && page < totalPages && (
           <LoadMore onClick={handleLoadMore} loading={loading} />

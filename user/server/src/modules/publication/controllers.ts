@@ -1,24 +1,30 @@
 import { Request, Response } from "express";
 
 import AppError from "../../configs/error";
+import { Review } from "../../models/review";
 import imagekit from "../../configs/imageKit";
 import { reviewPublication } from "./services";
-import Publication, { PublicationDocument } from "../../models/publication";
+import { Affiliate } from "../../models/affiliate";
 import asyncHandler from "../../utils/asyncHandler";
+import validateData from "../../utils/validateData";
+import getPagination from "../../utils/getPagination";
 import { validateUser } from "../../utils/validateUser";
 import { Notification } from "../../models/notification";
 import { validateMerchant } from "../../utils/validateMerchant";
 import uploadPublicationFile from "../../utils/uploadPublication";
+import { getReviewStatsMap, mapPublicationsWithStats } from "./utils";
 import { buildPublicationApprovedNotification } from "./notifications";
+import Publication, { PublicationDocument } from "../../models/publication";
 import {
   addSchema,
+  fetchByIdSchema,
   fetchSchema,
   filterByCategorySchema,
+  PromoteSchema,
   SearchByTitleSchema,
 } from "./validation";
-import { getReviewStatsMap, mapPublicationsWithStats } from "./utils";
-import getPagination from "../../utils/getPagination";
-import validateData from "../../utils/validateData";
+
+const CLIENT = process.env.CLIENT;
 
 type PlanFeatures = {
   id: string;
@@ -354,3 +360,126 @@ export const filterByCategory = asyncHandler(
     });
   }
 );
+
+export const fetchById = asyncHandler(async (req: Request, res: Response) => {
+  const parsed = validateData(req, res, fetchByIdSchema, "query");
+  if (!parsed) return;
+
+  const { id, forAffiliates } = parsed;
+  const affiliatesEnabled = forAffiliates === "yes" ? true : false;
+
+  const pub = await Publication.findById(id);
+  if (!pub) {
+    throw new AppError("Publication not found", 404, { code: "PUB_NOT_FOUND" });
+  }
+
+  // Aggregate reviews to get total reviews and average rating
+  const reviewStats = await Review.aggregate([
+    { $match: { publication: id } },
+    {
+      $group: {
+        _id: "$product",
+        reviewCount: { $sum: 1 },
+        avgRating: { $avg: "$rating" },
+      },
+    },
+  ]);
+
+  let reviewCount = 0;
+  let avgRating = 0;
+  if (reviewStats.length > 0) {
+    reviewCount = reviewStats[0].reviewCount;
+    avgRating = reviewStats[0].avgRating;
+  }
+
+  // Fetch the 12 most recent reviews with user details
+  const reviews = await Review.find({ product: id })
+    .sort({ createdAt: -1 })
+    .limit(12)
+    .populate("user", "avatar name")
+    .exec();
+
+  // Map reviews to include the required fields
+  const mappedReviews = reviews.map((review: any) => ({
+    id: review._id,
+    avatar: review.user?.avatar?.url || "",
+    name: review.user?.name || "",
+    date: new Date(review.updatedAt).toLocaleDateString(),
+    rating: review.rating,
+    comment: review.comment,
+  }));
+
+  return res.status(200).json({
+    success: true,
+    pub: {
+      id: pub._id,
+      title: pub.title,
+      author: pub.author,
+      cover: pub.cover.url,
+      description: pub.description,
+      language: pub.language,
+      pages: pub.pages,
+      price: pub.price,
+      discount: pub.discount,
+      enableDownloads: pub.enableDownloads,
+      hasExplicitContent: pub.hasExplicitContent,
+      commission: affiliatesEnabled ? pub.affiliateCommission : null,
+      reviewCount,
+      avgRating,
+      reviews: mappedReviews,
+    },
+  });
+});
+
+export const promote = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = await validateUser(req);
+  const merchant = await validateMerchant(userId);
+
+  const parsed = validateData(req, res, PromoteSchema, "body");
+  if (!parsed) return;
+
+  const plan = getPlanFeatures(merchant.plan);
+  const pubs = await Affiliate.find({ merchant: merchant._id }).exec();
+  if (merchant.plan === "starter" && pubs.length >= plan.promotions) {
+    throw new AppError("You have reached your starter plan limit.", 400, {
+      code: "STARTER_PLAN_LIMIT",
+    });
+  } else if (merchant.plan === "pro" && pubs.length >= plan.promotions) {
+    throw new AppError("You have reached your pro plan limit.", 400, {
+      code: "PRO_PLAN_LIMIT",
+    });
+  }
+
+  const { id } = parsed;
+  const pub = await Publication.findById(id);
+  if (!pub) {
+    throw new AppError("Publication not found", 404);
+  }
+
+  const exists = await Affiliate.findOne({
+    merchant: merchant._id,
+    publication: id,
+  }).exec();
+
+  if (exists) {
+    throw new AppError("You're already promoting this publication", 400, {
+      code: "PROMOTION_EXISTS",
+    });
+  }
+
+  const affiliateLink = `${CLIENT}/pub/${id}?ref=${merchant._id}`;
+
+  await Affiliate.create({
+    merchant: merchant._id,
+    publication: id,
+    link: affiliateLink,
+    cover: pub.cover.url,
+    title: pub.title,
+    enableDownloads: pub.enableDownloads,
+  });
+
+  return res.status(200).json({
+    success: true,
+    link: affiliateLink,
+  });
+});

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Types } from "mongoose";
 
 export const addSchema = z
   .object({
@@ -212,7 +213,38 @@ export const filterByCategorySchema = z
     }
   });
 
+export const fetchByIdSchema = z
+  .object({
+    id: z.string().min(1, "Publication ID is required"),
+    forAffiliates: z.enum(["yes", "no"], {
+      error: "Affiliate status is required",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    if (!Types.ObjectId.isValid(data.id)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["id"],
+        message: "Invalid publication ID",
+      });
+    }
+  });
+
+export const PromoteSchema = z.object({
+  id: z.string().min(1, "Publication ID is required"),
+}). superRefine((data, ctx) => {
+  if (!Types.ObjectId.isValid(data.id)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["id"],
+      message: "Invalid publication ID",
+    });
+  }
+})
+
 export type AddInput = z.infer<typeof addSchema>;
 export type FetchInput = z.infer<typeof fetchSchema>;
 export type SearchByTitleInput = z.infer<typeof SearchByTitleSchema>;
 export type FilterByCategoryInput = z.infer<typeof filterByCategorySchema>;
+export type FetchByIdInput = z.infer<typeof fetchByIdSchema>;
+export type PromoteInput = z.infer<typeof PromoteSchema>
