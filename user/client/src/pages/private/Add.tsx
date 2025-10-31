@@ -89,10 +89,6 @@ export default function AddProductPage() {
     null
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const mockRating = {
-    rating: 0,
-    numberOfRatings: 0,
-  };
   const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -313,7 +309,7 @@ export default function AddProductPage() {
               </div>
 
               {/* Rating */}
-              <StarRating productData={mockRating} />
+              <StarRating count={0} average={0} />
 
               {/* Description */}
               <ScrollArea className="max-h-[270px]">

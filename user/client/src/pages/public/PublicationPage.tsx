@@ -151,7 +151,7 @@ const ProductPage = () => {
                 </div>
 
                 {/* Rating */}
-                <StarRating productData={productData} />
+                <StarRating count={1204} average={4.6} />
 
                 {/* Description */}
                 <ScrollArea className="max-h-[270px]">
