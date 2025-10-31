@@ -11,6 +11,7 @@ import {
   listBanks,
   verifyAccount,
   saveAccount,
+  fetchVendorDashboard,
 } from "./controllers";
 
 const router = Router();
@@ -44,5 +45,7 @@ router.get("/fetch-account", getToken, fetchAccount);
 router.post("/verify-account", getToken, verifyAccount);
 
 router.post("/save-account", getToken, saveAccount);
+
+router.get("/vendor-dashboard", getToken, fetchVendorDashboard);
 
 export default router;

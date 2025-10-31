@@ -6,10 +6,17 @@ import { Merchant } from "../../models/merchant";
 import asyncHandler from "../../utils/asyncHandler";
 import { validateUser } from "../../utils/validateUser";
 import { validateMerchant } from "../../utils/validateMerchant";
-import { verifySubscriptionSchema, accountSchema } from "./validation";
 import { Notification } from "../../models/notification";
 import { buildSubscriptionSuccessfulNotification } from "./notifications";
 import validateData from "../../utils/validateData";
+import getPagination from "../../utils/getPagination";
+import Publication from "../../models/publication";
+import { Affiliate } from "../../models/affiliate";
+import {
+  verifySubscriptionSchema,
+  accountSchema,
+  fetchDashboardSchema,
+} from "./validation";
 
 const paystack = axios.create({
   baseURL: "https://api.paystack.co",
@@ -337,3 +344,74 @@ export const saveAccount = asyncHandler(async (req: Request, res: Response) => {
     },
   });
 });
+
+export const fetchVendorDashboard = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = await validateUser(req);
+    const merchant = await validateMerchant(userId);
+    const parsed = validateData(req, res, fetchDashboardSchema, "query");
+    if (!parsed) return;
+
+    const { page, limit } = parsed;
+    const { pageSize, skip } = getPagination(page, limit);
+
+    // Fetch paginated vendor publications
+    const vendorPubs = await Publication.find({ vendor: merchant._id })
+      .lean()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize);
+
+    // Get total number of vendor publications
+    const totalPubs = await Publication.countDocuments({
+      vendor: merchant._id,
+    });
+    const totalPages = Math.ceil(totalPubs / pageSize);
+
+    // Get global totals
+    const globalTotals = await Publication.aggregate([
+      { $match: { vendor: merchant._id } },
+      {
+        $group: {
+          _id: null,
+          totalUnitsSold: { $sum: "$unitsSold" },
+          totalEarnings: { $sum: "$earnings" },
+        },
+      },
+    ]);
+
+    const totalUnitsSold = globalTotals[0]?.totalUnitsSold ?? 0;
+    const totalEarnings = globalTotals[0]?.totalEarnings ?? 0;
+
+    // Get affiliates for each paginated publication
+    const affiliates = await Affiliate.aggregate([
+      { $match: { publication: { $in: vendorPubs.map((p) => p._id) } } },
+      { $group: { _id: "$publication", totalAffiliates: { $sum: 1 } } },
+    ]);
+
+    const affiliatesMap: Record<string, number> = {};
+    affiliates.forEach((pub) => {
+      affiliatesMap[pub._id.toString()] = pub.totalAffiliates;
+    });
+
+    // return an object for each publication
+    const pubs = vendorPubs.map((p: any) => ({
+      id: p._id,
+      title: p.title,
+      cover: p.cover?.url ?? null,
+      enableDownloads: p.enableDownloads,
+      affiliates: affiliatesMap[String(p._id)] ?? 0,
+      unitsSold: p.unitsSold,
+      earnings: p.earnings,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      pubs,
+      totalPubs,
+      totalUnitsSold,
+      totalEarnings,
+      totalPages,
+    });
+  }
+);

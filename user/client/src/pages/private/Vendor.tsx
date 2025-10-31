@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Book,
@@ -9,8 +10,10 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import LoadMore from "@/components/load-more";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -20,68 +23,81 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import LoadMore from "@/components/load-more";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "react-router-dom";
+import { useApp } from "@/contexts/app";
+import { useAuth } from "@/contexts/auth";
+import handleError from "@/utils/handleError";
+import { toast } from "sonner";
+import Popup from "@/components/pub-popup";
 
-// Mock data for demonstration
-const mockProducts = [
-  {
-    id: 1,
-    title: "Digital Marketing Mastery",
-    allowsDownload: true,
-    affiliates: 24,
-    unitsSold: 156,
-    earnings: 4680.0,
-  },
-  {
-    id: 2,
-    title: "Modern Web Development Guide",
-    allowsDownload: true,
-    affiliates: 18,
-    unitsSold: 203,
-    earnings: 6090.0,
-  },
-  {
-    id: 3,
-    title: "AI & Machine Learning Basics",
-    allowsDownload: false,
-    affiliates: 31,
-    unitsSold: 89,
-    earnings: 2670.0,
-  },
-  {
-    id: 4,
-    title: "Creative Writing Workshop",
-    allowsDownload: true,
-    affiliates: 12,
-    unitsSold: 67,
-    earnings: 2010.0,
-  },
-  {
-    id: 5,
-    title: "Photography Fundamentals",
-    allowsDownload: true,
-    affiliates: 45,
-    unitsSold: 312,
-    earnings: 9360.0,
-  },
-];
+type publications = {
+  id: number;
+  title: string;
+  cover: string;
+  enableDownloads: boolean;
+  affiliates: number;
+  unitsSold: number;
+  earnings: number;
+};
 
 const VendorDashboard = () => {
-  const [products] = useState(mockProducts);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { axios, user } = useAuth();
+  const { loading, setLoading, formatNGN } = useApp();
 
-  // Calculate totals
-  const totalProducts = products.length;
-  const totalUnitsSold = products.reduce((sum, p) => sum + p.unitsSold, 0);
-  const totalEarnings = products.reduce((sum, p) => sum + p.earnings, 0);
+  const [pubs, setPubs] = useState<publications[]>([]);
+  const [totalPubs, setTotalPubs] = useState<number>(0);
+  const [totalUnitsSold, setTotalUnitsSold] = useState<number>(0);
+  const [totalEarnings, setTotalEarnings] = useState<number>(0);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(0);
+
+  const STARTER_LIMIT: number = 5;
+  const PRO_LIMIT: number = 25;
 
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-  }, []);
+    const fetchDashboard = async () => {
+      setLoading(true);
+
+      try {
+        const { data } = await axios.get("/merchant/vendor-dashboard", {
+          params: { page, limit: 20 },
+        });
+
+        if (data.success) {
+          setPubs((prev) => (page === 1 ? data.pubs : [...prev, ...data.pubs]));
+          setTotalPubs(data.totalPubs);
+          setTotalUnitsSold(data.totalUnitsSold);
+          setTotalEarnings(data.totalEarnings);
+          setTotalPages(data.totalPages);
+        } else toast.error(data.message);
+      } catch (err) {
+        handleError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+    // eslint-disable-next-line
+  }, [page]);
+
+  const handleAdd = () => {
+    if (!user?.plan) return;
+    const message: string =
+      "You have reached the maximum number of publications for your plan.";
+
+    if (user?.plan === "starter" && totalPubs >= STARTER_LIMIT) {
+      return toast.error(message);
+    } else if (user?.plan === "pro" && totalPubs >= PRO_LIMIT) {
+      return toast.error(message);
+    }
+
+    navigate("/add");
+  };
+
+  const handleLoadMore = () => {
+    if (page < totalPages) setPage((prev) => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -93,13 +109,13 @@ const VendorDashboard = () => {
               Vendor Dashboard
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage your products and track your sales
+              Manage your publications and track your sales
             </p>
           </div>
-          <Link to="/add" className={buttonVariants()}>
+          <Button onClick={handleAdd}>
             <Plus className="mr-1 h-4 w-4" />
-            Add Product
-          </Link>
+            Add Publication
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -108,12 +124,12 @@ const VendorDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Products
+                  Total Publications
                 </CardTitle>
                 <Book className="text-muted-foreground h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalProducts}</div>
+                <div className="text-2xl font-bold">{totalPubs}</div>
                 <p className="text-muted-foreground text-xs mt-1">
                   Active publications
                 </p>
@@ -130,7 +146,7 @@ const VendorDashboard = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{totalUnitsSold}</div>
                 <p className="text-muted-foreground text-xs mt-1">
-                  Across all products
+                  Across all publications
                 </p>
               </CardContent>
             </Card>
@@ -144,7 +160,7 @@ const VendorDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${totalEarnings.toFixed(2)}
+                  {formatNGN(totalEarnings)}
                 </div>
                 <p className="text-muted-foreground text-xs mt-1">
                   Lifetime revenue
@@ -161,11 +177,11 @@ const VendorDashboard = () => {
           </div>
         )}
 
-        {/* Products Table */}
+        {/* Publications Table */}
         {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle>Your Products</CardTitle>
+              <CardTitle>Your Publications</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -180,15 +196,13 @@ const VendorDashboard = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {products.map((product) => (
-                      <TableRow key={product.id}>
+                    {pubs?.map((p) => (
+                      <TableRow key={p?.id}>
                         <TableCell className="font-medium max-w-[200px] md:max-w-none cursor-pointer">
-                          {product.title.length > 30
-                            ? `${product.title.slice(0, 30)}...`
-                            : product.title}
+                          <Popup id={p?.id} title={p?.title} cover={p?.cover} />
                         </TableCell>
                         <TableCell className="text-center">
-                          {product.allowsDownload ? (
+                          {p?.enableDownloads ? (
                             <Badge
                               variant="secondary"
                               className="bg-primary/10 text-primary border-primary/20"
@@ -207,21 +221,17 @@ const VendorDashboard = () => {
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                             <Users className="text-muted-foreground h-3 w-3" />
-                            <span className="font-medium">
-                              {product.affiliates}
-                            </span>
+                            <span className="font-medium">{p?.affiliates}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
                             <TrendingUp className="text-primary h-3 w-3" />
-                            <span className="font-medium">
-                              {product.unitsSold}
-                            </span>
+                            <span className="font-medium">{p?.unitsSold}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-primary">
-                          ${product.earnings.toFixed(2)}
+                        <TableCell className="text-right font-semibold">
+                          {formatNGN(p?.earnings)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -233,7 +243,9 @@ const VendorDashboard = () => {
         )}
         {loading && <Skeleton className="w-full h-100 rounded-xl" />}
 
-        {/* {!loading && <LoadMore />} */}
+        {page < totalPages && (
+          <LoadMore onClick={handleLoadMore} loading={loading} />
+        )}
         {loading && <Skeleton className="h-10 w-32 mx-auto" />}
       </div>
     </div>
