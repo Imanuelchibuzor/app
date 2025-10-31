@@ -28,6 +28,7 @@ import { useAuth } from "@/contexts/auth";
 import handleError from "@/utils/handleError";
 import { toast } from "sonner";
 import Popup from "@/components/pub-popup";
+import EmptyContent from "@/components/empty-content";
 
 type publications = {
   id: number;
@@ -178,74 +179,96 @@ const VendorDashboard = () => {
         )}
 
         {/* Publications Table */}
-        {!loading && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Publications</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead className="text-center">Download</TableHead>
-                      <TableHead className="text-center">Affiliates</TableHead>
-                      <TableHead className="text-center">Units Sold</TableHead>
-                      <TableHead className="text-right">Earnings</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pubs?.map((p) => (
-                      <TableRow key={p?.id}>
-                        <TableCell className="font-medium max-w-[200px] md:max-w-none cursor-pointer">
-                          <Popup id={p?.id} title={p?.title} cover={p?.cover} />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {p?.enableDownloads ? (
-                            <Badge
-                              variant="secondary"
-                              className="bg-primary/10 text-primary border-primary/20"
-                            >
-                              <Download className="h-3 w-3" />
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-muted-foreground"
-                            >
-                              N/A
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Users className="text-muted-foreground h-3 w-3" />
-                            <span className="font-medium">{p?.affiliates}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <TrendingUp className="text-primary h-3 w-3" />
-                            <span className="font-medium">{p?.unitsSold}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {formatNGN(p?.earnings)}
-                        </TableCell>
+        {!loading &&
+          (totalPubs > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Your Publications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead className="text-center">Download</TableHead>
+                        <TableHead className="text-center">
+                          Affiliates
+                        </TableHead>
+                        <TableHead className="text-center">
+                          Units Sold
+                        </TableHead>
+                        <TableHead className="text-right">Earnings</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                    </TableHeader>
+                    <TableBody>
+                      {pubs?.map((p) => (
+                        <TableRow key={p?.id}>
+                          <TableCell className="font-medium max-w-[200px] md:max-w-none cursor-pointer">
+                            <Popup
+                              id={p?.id}
+                              title={p?.title}
+                              link={`saerv.com/pub/${p?.id}`}
+                              cover={p?.cover}
+                              type="vendor"
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {p?.enableDownloads ? (
+                              <Badge
+                                variant="secondary"
+                                className="bg-primary/10 text-primary border-primary/20"
+                              >
+                                <Download className="h-3 w-3" />
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="text-muted-foreground"
+                              >
+                                N/A
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <Users className="text-muted-foreground h-3 w-3" />
+                              <span className="font-medium">
+                                {p?.affiliates}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              <TrendingUp className="text-primary h-3 w-3" />
+                              <span className="font-medium">
+                                {p?.unitsSold}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatNGN(p?.earnings)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <EmptyContent
+              type="data"
+              title="No Data"
+              description="You have not added any publications."
+            />
+          ))}
         {loading && <Skeleton className="w-full h-100 rounded-xl" />}
 
         {page < totalPages && (
           <LoadMore onClick={handleLoadMore} loading={loading} />
         )}
+
         {loading && <Skeleton className="h-10 w-32 mx-auto" />}
       </div>
     </div>

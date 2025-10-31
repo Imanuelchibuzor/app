@@ -394,7 +394,7 @@ export const fetchVendorDashboard = asyncHandler(
       affiliatesMap[pub._id.toString()] = pub.totalAffiliates;
     });
 
-    // return an object for each publication
+    // Object for each publication
     const pubs = vendorPubs.map((p: any) => ({
       id: p._id,
       title: p.title,
@@ -411,6 +411,68 @@ export const fetchVendorDashboard = asyncHandler(
       totalPubs,
       totalUnitsSold,
       totalEarnings,
+      totalPages,
+    });
+  }
+);
+
+export const fetchAffiliateDashboard = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { userId } = await validateUser(req);
+    const merchant = await validateMerchant(userId);
+    const parsed = validateData(req, res, fetchDashboardSchema, "query");
+    if (!parsed) return;
+
+    const { page, limit } = parsed;
+    const { pageSize, skip } = getPagination(page, limit);
+
+    // Fetch paginated affiliate publications
+    const affiliatePubs = await Affiliate.find({ merchant: merchant._id })
+      .lean()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(pageSize);
+
+    // Total number of affiliate publications
+    const totalPubs = await Affiliate.countDocuments({
+      merchant: merchant._id,
+    });
+    const totalPages = Math.ceil(totalPubs / pageSize);
+
+    // Global totals
+    const globalTotals = await Affiliate.aggregate([
+      { $match: { merchant: merchant._id } },
+      {
+        $group: {
+          _id: null,
+          totalConversions: { $sum: "$conversions" },
+          totalCommissions: { $sum: "$commissions" },
+        },
+      },
+    ]);
+
+    const toatlConversions = globalTotals[0]?.totalConversions ?? 0;
+    const totalCommissions = globalTotals[0]?.totalCommissions ?? 0;
+
+    // Object for each publication
+    const pubs = affiliatePubs.map((p: any) => ({
+      id: p._id,
+      title: p.title,
+      link: p.link,
+      cover: p.cover ?? null,
+      enableDownloads: p.enableDownloads,
+      totalClicks: p.totalClicks,
+      uniqueClicks: p.uniqueClicks,
+      conversions: p.conversions,
+      commissions: p.commissions,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      pubs,
+      totalPubs,
+      toatlConversions,
+      totalCommissions,
       totalPages,
     });
   }

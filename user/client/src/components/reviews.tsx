@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 
-import EmptyReview from "./empty-review";
+import EmptyContent from "./empty-content";
 import { AvatarImage } from "@radix-ui/react-avatar";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Card, CardContent, CardHeader } from "./ui/card";
@@ -55,9 +55,11 @@ type Review = {
 export const Reviews = ({ reviews }: { reviews: Review[] }) => {
   if (!reviews || reviews.length === 0) {
     return (
-      <main>
-        <EmptyReview />
-      </main>
+      <EmptyContent
+        type="review"
+        title="No Review"
+        description="There is no review for this publication yet."
+      />
     );
   }
 

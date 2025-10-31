@@ -13,7 +13,7 @@ import { Notification } from "../../models/notification";
 import { validateMerchant } from "../../utils/validateMerchant";
 import uploadPublicationFile from "../../utils/uploadPublication";
 import { getReviewStatsMap, mapPublicationsWithStats } from "./utils";
-import { buildPublicationApprovedNotification } from "./notifications";
+import { buildPromoteSuccessNotification, buildPublicationApprovedNotification } from "./notifications";
 import Publication, { PublicationDocument } from "../../models/publication";
 import {
   addSchema,
@@ -23,8 +23,6 @@ import {
   PromoteSchema,
   SearchByTitleSchema,
 } from "./validation";
-
-const CLIENT = process.env.CLIENT;
 
 type PlanFeatures = {
   id: string;
@@ -432,7 +430,7 @@ export const fetchById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const promote = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = await validateUser(req);
+  const { user, userId } = await validateUser(req);
   const merchant = await validateMerchant(userId);
 
   const parsed = validateData(req, res, PromoteSchema, "body");
@@ -467,7 +465,7 @@ export const promote = asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  const affiliateLink = `${CLIENT}/pub/${id}?ref=${merchant._id}`;
+  const affiliateLink = `saerv.com/pub/${id}?ref=${merchant._id}`;
 
   await Affiliate.create({
     merchant: merchant._id,
@@ -476,6 +474,14 @@ export const promote = asyncHandler(async (req: Request, res: Response) => {
     cover: pub.cover.url,
     title: pub.title,
     enableDownloads: pub.enableDownloads,
+  });
+
+  // Send notification
+  const message = buildPromoteSuccessNotification(user.name, pub.title);
+  await Notification.create({
+    user: userId,
+    subject: `Promotion Successful: ${pub.title}`,
+    message,
   });
 
   return res.status(200).json({

@@ -5,8 +5,8 @@ import Search from "@/components/search";
 import LoadMore from "@/components/load-more";
 import Categories from "@/components/categories";
 import SkeletonCard from "@/components/skeleton-card";
+import EmptyContent from "@/components/empty-content";
 import PublicationCard from "@/components/publication-card";
-import EmptyPublication from "@/components/empty-publication";
 
 import { useApp } from "@/contexts/app";
 import { useAuth } from "@/contexts/auth";
@@ -151,7 +151,13 @@ const Home = () => {
             ))}
         </div>
 
-        {publications?.length === 0 && !loading && <EmptyPublication />}
+        {publications?.length === 0 && !loading && (
+          <EmptyContent
+            type="publication"
+            title="No Publication"
+            description="There is no publication that matches your query."
+          />
+        )}
 
         {query === "none" && page < totalPages && (
           <LoadMore onClick={handleLoadMore} loading={loading} />
